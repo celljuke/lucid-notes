@@ -1,6 +1,6 @@
 Story,Task,Estimate min (hr),Estimate max (hr),Actual,Comment
 
-Init project, Create project with Next.js, 0.5, 0.5,
-Authentication, Implement Auth.js, 0.25, 0.25
-Database, Implement prisma, 0.25, 0.25
-Database, Generate db schema, 1, 1
+Init project, Create project with Next.js, 0.5, 0.5, 0.5
+Authentication, Implement Auth.js, 0.25, 0.25, 0.25
+Database, Implement prisma, 0.25, 0.25, 0.25
+Database, Generate db schema, 1, 1, 0.5

@@ -1,0 +1,24 @@
+version: "3.8"
+
+services:
+  postgres:
+    image: postgres:16
+    container_name: lucid-notes-db
+    restart: always
+    environment:
+      POSTGRES_USER: lucid_user
+      POSTGRES_PASSWORD: lucid_password
+      POSTGRES_DB: lucid_notes
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U lucid_user -d lucid_notes"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+volumes:
+  postgres_data:
