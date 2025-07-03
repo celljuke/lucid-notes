@@ -54,6 +54,7 @@ model User {
   accounts Account[]
   sessions Session[]
   notes    Note[]
+  folders  Folder[]
 
   @@map("users")
 }
@@ -67,19 +68,39 @@ model VerificationToken {
   @@map("verificationtokens")
 }
 
-model Note {
-  id          String   @id @default(cuid())
-  title       String
-  content     String   @db.Text
-  tags        String[]
-  userId      String   @map("user_id")
-  isPublic    Boolean  @default(false) @map("is_public")
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
+model Folder {
+  id        String   @id @default(cuid())
+  name      String
+  color     String   @default("#4F46E5")
+  userId    String   @map("user_id")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user  User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  notes Note[]
+
+  @@index([userId])
+  @@map("folders")
+}
+
+model Note {
+  id        String   @id @default(cuid())
+  title     String
+  content   String   @db.Text
+  tags      String[]
+  userId    String   @map("user_id")
+  folderId  String?  @map("folder_id")
+  color     String   @default("#FFE066")
+  isPublic  Boolean  @default(false) @map("is_public")
+  isPinned  Boolean  @default(false) @map("is_pinned")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  folder Folder? @relation(fields: [folderId], references: [id], onDelete: SetNull)
 
   @@index([userId])
   @@index([tags])
+  @@index([folderId])
   @@map("notes")
 } 

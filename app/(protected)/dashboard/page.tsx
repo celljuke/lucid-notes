@@ -7,9 +7,11 @@ export default async function Dashboard() {
     <div className="space-y-8">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-        <Button>
-          <PlusCircle className="mr-2 h-4 w-4" />
-          New Note
+        <Button asChild>
+          <a href="/notes">
+            <PlusCircle className="mr-2 h-4 w-4" />
+            New Note
+          </a>
         </Button>
       </div>
 
@@ -73,6 +75,11 @@ export default async function Dashboard() {
           <div className="text-center py-8 text-muted-foreground">
             <BookOpen className="mx-auto h-12 w-12 mb-4" />
             <p>No notes yet. Create your first note to get started!</p>
+            <div className="mt-4">
+              <Button asChild>
+                <a href="/notes">Go to Notes</a>
+              </Button>
+            </div>
           </div>
         </CardContent>
       </Card>
