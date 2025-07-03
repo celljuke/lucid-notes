@@ -157,3 +157,6 @@ export const FOLDER_COLOR_OPTIONS: ColorOption[] = [
   { name: "Teal", value: "#14B8A6" },
   { name: "Orange", value: "#F97316" },
 ];
+
+// Alias for NOTE_COLOR_OPTIONS for backward compatibility
+export const COLORS = NOTE_COLOR_OPTIONS;

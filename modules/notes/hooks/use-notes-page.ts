@@ -24,6 +24,15 @@ export function useNotesPage() {
     setIsEditorOpen(true);
   };
 
+  const handleCreateNoteWithColor = (color: string) => {
+    createNote({
+      title: "Untitled Note",
+      content: "",
+      tags: ["new"],
+      color,
+    });
+  };
+
   const handleEditNote = (noteId: string) => {
     setSelectedNoteId(noteId);
     setIsEditorOpen(true);
@@ -88,6 +97,7 @@ export function useNotesPage() {
 
     // Handlers
     handleCreateNote,
+    handleCreateNoteWithColor,
     handleEditNote,
     handleCloseEditor,
     handleTagClick,
