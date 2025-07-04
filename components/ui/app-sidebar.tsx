@@ -8,7 +8,7 @@ import { useTheme } from "next-themes";
 import { signOut, useSession } from "next-auth/react";
 import { useRouter, usePathname } from "next/navigation";
 import { COLORS } from "@/modules/notes/types";
-import { useNotesPage } from "@/modules/notes/hooks/use-notes-page";
+import { useNotesStore } from "@/modules/notes/store";
 
 export function AppSidebar() {
   const [showColors, setShowColors] = useState(false);
@@ -17,15 +17,28 @@ export function AppSidebar() {
   const router = useRouter();
   const pathname = usePathname();
 
-  const { handleCreateNoteWithColor } = useNotesPage();
+  const { createNote, selectedFolderId, fetchFolders } = useNotesStore();
 
   const handleCreateClick = () => {
     setShowColors(!showColors);
   };
 
-  const handleColorSelect = (color: string) => {
+  const handleColorSelect = async (color: string) => {
     console.log("color", color);
-    handleCreateNoteWithColor(color);
+    try {
+      await createNote({
+        title: "Untitled Note",
+        content: "",
+        tags: ["new"],
+        color,
+        folderId: selectedFolderId || undefined,
+        isPinned: false,
+      });
+      // Refresh folders to update note counts on badges
+      await fetchFolders();
+    } catch (error) {
+      console.error("Error creating note:", error);
+    }
     setShowColors(false);
   };
 

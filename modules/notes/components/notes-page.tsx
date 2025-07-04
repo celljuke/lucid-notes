@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Search, Star, Folder, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -18,7 +18,8 @@ import { motion } from "motion/react";
 import { FolderBookmarks } from "./folder-bookmarks";
 import { NoteEditor } from "./note-editor";
 import { FolderManager } from "./folder-manager";
-import { useNotesPage } from "../hooks/use-notes-page";
+import { useNotesStore } from "../store";
+import { Note } from "../types";
 
 export function NotesPage() {
   const [deleteNoteId, setDeleteNoteId] = useState<string | null>(null);
@@ -32,21 +33,75 @@ export function NotesPage() {
     selectedNoteId,
     isFolderManagerOpen,
     setIsFolderManagerOpen,
+    setIsEditorOpen,
+    setSelectedNoteId,
+    setSelectedFolderId,
 
     // Data
     notes,
     folders,
     isLoading,
 
-    // Handlers
-    handleEditNote,
-    handleCloseEditor,
-    handleDeleteNote,
-    handleDeleteFolder,
-    handleFolderSelect,
-    handleSaveNote,
+    // Actions
+    searchNotes,
+    updateNote,
+    createNote,
+    deleteNote,
     fetchFolders,
-  } = useNotesPage();
+    deleteFolder,
+  } = useNotesStore();
+
+  // Initialize data on component mount
+  useEffect(() => {
+    searchNotes();
+    fetchFolders();
+  }, [searchNotes, fetchFolders]);
+
+  // Handlers
+  const handleEditNote = (noteId: string) => {
+    setSelectedNoteId(noteId);
+    setIsEditorOpen(true);
+  };
+
+  const handleCloseEditor = () => {
+    setIsEditorOpen(false);
+    setSelectedNoteId(null);
+  };
+
+  const handleDeleteNote = async (noteId: string) => {
+    await deleteNote(noteId);
+    // Refresh folders to update note counts on badges
+    await fetchFolders();
+  };
+
+  const handleDeleteFolder = async (folderId: string) => {
+    await deleteFolder(folderId);
+    // If the deleted folder was selected, switch to "All Notes"
+    if (selectedFolderId === folderId) {
+      setSelectedFolderId(null);
+    }
+  };
+
+  const handleFolderSelect = (folderId: string | null) => {
+    setSelectedFolderId(folderId);
+  };
+
+  const handleSaveNote = async (data: {
+    title: string;
+    content: string;
+    tags: string[];
+    folderId?: string;
+    color: string;
+    isPinned: boolean;
+  }) => {
+    if (selectedNoteId) {
+      await updateNote(selectedNoteId, data);
+    } else {
+      await createNote(data);
+    }
+    // Refresh folders to update note counts on badges
+    await fetchFolders();
+  };
 
   const confirmDeleteNote = async () => {
     if (deleteNoteId) {
@@ -95,7 +150,7 @@ export function NotesPage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {notes.map((note, index) => (
+            {notes.map((note: Note, index: number) => (
               <motion.div
                 key={note.id}
                 initial={{ opacity: 0, y: 20 }}
@@ -161,7 +216,7 @@ export function NotesPage() {
                       )}
 
                       {/* Tags */}
-                      {note.tags.slice(0, 3).map((tag) => (
+                      {note.tags.slice(0, 3).map((tag: string) => (
                         <Badge
                           key={tag}
                           variant="secondary"

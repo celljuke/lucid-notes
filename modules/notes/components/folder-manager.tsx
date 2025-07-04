@@ -30,7 +30,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { useFolders } from "../hooks/use-folders";
+import { useNotesStore } from "../store";
 import { createFolderSchema, type CreateFolderData } from "../schema";
 import { FOLDER_COLOR_OPTIONS } from "../types";
 
@@ -55,7 +55,7 @@ export function FolderManager({
   onFolderDeleted,
 }: FolderManagerProps) {
   const [deleteFolderId, setDeleteFolderId] = useState<string | null>(null);
-  const { createFolder, deleteFolder } = useFolders();
+  const { createFolder, deleteFolder } = useNotesStore();
 
   const form = useForm<CreateFolderData>({
     resolver: zodResolver(createFolderSchema),
