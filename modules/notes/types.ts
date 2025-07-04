@@ -73,20 +73,6 @@ export interface FolderManagerProps {
   onClose: () => void;
 }
 
-export interface NotesGridProps {
-  notes: Note[];
-  onEdit: (noteId: string) => void;
-  onDelete: (noteId: string) => void;
-  onTagClick?: (tag: string) => void;
-}
-
-export interface NotesListProps {
-  notes: Note[];
-  onEdit: (noteId: string) => void;
-  onDelete: (noteId: string) => void;
-  onTagClick?: (tag: string) => void;
-}
-
 export interface NoteSidebarProps {
   folders: Folder[];
   selectedTags: string[];
@@ -135,27 +121,27 @@ export interface ApiError {
   details?: unknown;
 }
 
-// Constants
+// Constants - Pastel Colors
 export const NOTE_COLOR_OPTIONS: ColorOption[] = [
-  { name: "Yellow", value: "#FFE066" },
-  { name: "Orange", value: "#FF8A65" },
-  { name: "Pink", value: "#F06292" },
-  { name: "Purple", value: "#BA68C8" },
-  { name: "Blue", value: "#4FC3F7" },
-  { name: "Green", value: "#66BB6A" },
-  { name: "Teal", value: "#26A69A" },
-  { name: "Gray", value: "#90A4AE" },
+  { name: "Yellow", value: "#FFF9C4" },
+  { name: "Orange", value: "#FFE0B2" },
+  { name: "Pink", value: "#F8BBD9" },
+  { name: "Purple", value: "#E1BEE7" },
+  { name: "Blue", value: "#BBDEFB" },
+  { name: "Green", value: "#C8E6C9" },
+  { name: "Teal", value: "#B2DFDB" },
+  { name: "Gray", value: "#E0E0E0" },
 ];
 
 export const FOLDER_COLOR_OPTIONS: ColorOption[] = [
-  { name: "Blue", value: "#4F46E5" },
-  { name: "Green", value: "#10B981" },
-  { name: "Yellow", value: "#F59E0B" },
-  { name: "Red", value: "#EF4444" },
-  { name: "Purple", value: "#8B5CF6" },
-  { name: "Pink", value: "#EC4899" },
-  { name: "Teal", value: "#14B8A6" },
-  { name: "Orange", value: "#F97316" },
+  { name: "Blue", value: "#BBDEFB" },
+  { name: "Green", value: "#C8E6C9" },
+  { name: "Yellow", value: "#FFF9C4" },
+  { name: "Red", value: "#FFCDD2" },
+  { name: "Purple", value: "#E1BEE7" },
+  { name: "Pink", value: "#F8BBD9" },
+  { name: "Teal", value: "#B2DFDB" },
+  { name: "Orange", value: "#FFE0B2" },
 ];
 
 // Alias for NOTE_COLOR_OPTIONS for backward compatibility

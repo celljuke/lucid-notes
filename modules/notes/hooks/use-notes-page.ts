@@ -13,7 +13,12 @@ export function useNotesPage() {
 
   const { notes, isLoading, searchNotes, createNote, updateNote, deleteNote } =
     useNotes();
-  const { folders, isLoading: foldersLoading } = useFolders();
+  const {
+    folders,
+    isLoading: foldersLoading,
+    deleteFolder,
+    fetchFolders,
+  } = useFolders();
 
   useEffect(() => {
     searchNotes({ search, tags: selectedTags, folderId: selectedFolderId });
@@ -30,6 +35,7 @@ export function useNotesPage() {
       content: "",
       tags: ["new"],
       color,
+      folderId: selectedFolderId || undefined,
     });
   };
 
@@ -56,8 +62,16 @@ export function useNotesPage() {
   };
 
   const handleDeleteNote = async (noteId: string) => {
-    if (confirm("Are you sure you want to delete this note?")) {
-      await deleteNote(noteId);
+    await deleteNote(noteId);
+    // Refresh folders to update note counts on badges
+    await fetchFolders();
+  };
+
+  const handleDeleteFolder = async (folderId: string) => {
+    await deleteFolder(folderId);
+    // If the deleted folder was selected, switch to "All Notes"
+    if (selectedFolderId === folderId) {
+      setSelectedFolderId(null);
     }
   };
 
@@ -74,6 +88,8 @@ export function useNotesPage() {
     } else {
       await createNote(data);
     }
+    // Refresh folders to update note counts on badges
+    await fetchFolders();
   };
 
   return {
@@ -103,6 +119,8 @@ export function useNotesPage() {
     handleTagClick,
     handleFolderSelect,
     handleDeleteNote,
+    handleDeleteFolder,
     handleSaveNote,
+    fetchFolders,
   };
 }

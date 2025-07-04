@@ -57,19 +57,19 @@ export function NoteSidebar({ onCreateNote }: NoteSidebarProps) {
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
-              className="absolute top-16 left-0 flex flex-col space-y-2"
+              className="mt-2 justify-center items-center flex flex-col space-y-2"
             >
-              {COLORS.map((colorOption) => (
+              {COLORS.map((colorOption, index) => (
                 <motion.button
                   key={colorOption.value}
                   onClick={() => handleColorSelect(colorOption.value)}
-                  className="w-8 h-8 rounded-full hover:scale-110 transition-transform"
+                  className="w-6 h-6 rounded-full hover:scale-110 transition-transform border border-gray-400 dark:border-gray-700"
                   style={{ backgroundColor: colorOption.value }}
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.9 }}
                   initial={{ opacity: 0, scale: 0 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: COLORS.indexOf(colorOption) * 0.1 }}
+                  transition={{ delay: index * 0.1 }}
                 />
               ))}
             </motion.div>
