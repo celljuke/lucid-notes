@@ -1,16 +1,17 @@
-import { auth } from "@/auth";
-import { redirect } from "next/navigation";
+import { AppSidebar } from "@/components/ui/app-sidebar";
 
-export default async function ProtectedLayout({
+export default function ProtectedLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const session = await auth();
+  return (
+    <div className="flex h-screen bg-white dark:bg-gray-950">
+      {/* Sidebar */}
+      <AppSidebar />
 
-  if (!session?.user) {
-    redirect("/sign-in");
-  }
-
-  return <div className="h-screen bg-background">{children}</div>;
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col overflow-hidden">{children}</div>
+    </div>
+  );
 }

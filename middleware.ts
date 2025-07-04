@@ -9,8 +9,7 @@ export const config = {
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
      * - sign-in, sign-up (auth pages)
-     * - / (home page for unauthenticated users)
      */
-    "/((?!api|_next/static|_next/image|favicon.ico|sign-in|sign-up|$).*)",
+    "/((?!api|_next/static|_next/image|favicon.ico|sign-in|sign-up).*)",
   ],
 };
