@@ -107,7 +107,6 @@ export function NotesPage() {
                   className="rounded-2xl p-5 cursor-pointer hover:shadow-xl transition-all duration-200 relative group h-full flex flex-col"
                   style={{ backgroundColor: note.color }}
                   onClick={() => handleEditNote(note.id)}
-                  whileHover={{ y: -3, scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                 >
                   {/* Action buttons */}
@@ -153,9 +152,7 @@ export function NotesPage() {
                           variant="secondary"
                           className="text-xs font-medium border-0 shadow-sm"
                           style={{
-                            backgroundColor: `${note.folder.color}20`,
                             color: note.folder.color,
-                            borderLeft: `3px solid ${note.folder.color}`,
                           }}
                         >
                           <Folder className="w-3 h-3 mr-1" />
@@ -167,8 +164,8 @@ export function NotesPage() {
                       {note.tags.slice(0, 3).map((tag) => (
                         <Badge
                           key={tag}
-                          variant="outline"
-                          className="text-xs font-normal bg-white/60 text-gray-600 border-gray-300/60 hover:bg-white/80 transition-colors"
+                          variant="secondary"
+                          className="text-xs font-normal"
                         >
                           {tag}
                         </Badge>

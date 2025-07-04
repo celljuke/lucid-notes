@@ -11,7 +11,7 @@ export default function ProtectedLayout({
       <AppSidebar />
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col overflow-hidden">{children}</div>
+      <div className="flex-1 flex flex-col overflow-hiddden">{children}</div>
     </div>
   );
 }

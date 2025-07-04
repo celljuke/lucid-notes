@@ -55,6 +55,7 @@ model User {
   sessions Session[]
   notes    Note[]
   folders  Folder[]
+  aiUsage  AiUsage[]
 
   @@map("users")
 }
@@ -103,4 +104,20 @@ model Note {
   @@index([tags])
   @@index([folderId])
   @@map("notes")
+}
+
+model AiUsage {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  feature   String   // "title", "expand", "summarize"
+  noteId    String?  @map("note_id")
+  success   Boolean  @default(true)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([feature])
+  @@index([createdAt])
+  @@map("ai_usage")
 } 

@@ -1,6 +1,6 @@
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
-import { AnalyticsPageContent } from "./analytics-content";
+import { AnalyticsDashboard } from "@/modules/analytics/components/analytics-dashboard";
 
 export default async function AnalyticsPage() {
   const session = await auth();
@@ -9,5 +9,11 @@ export default async function AnalyticsPage() {
     redirect("/sign-in");
   }
 
-  return <AnalyticsPageContent />;
+  return (
+    <div className="overflow-y-auto">
+      <div className="container mx-auto p-6">
+        <AnalyticsDashboard />
+      </div>
+    </div>
+  );
 }

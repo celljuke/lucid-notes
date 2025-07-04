@@ -2,15 +2,18 @@ import { openai } from "@ai-sdk/openai";
 import { generateText } from "ai";
 import { auth } from "@/auth";
 import { NextRequest } from "next/server";
+import { trackAiUsage } from "@/lib/ai-usage-tracker";
 
 export async function POST(request: NextRequest) {
+  let success = false;
+  const session = await auth();
+
   try {
-    const session = await auth();
     if (!session?.user) {
       return Response.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { content } = await request.json();
+    const { content, noteId } = await request.json();
 
     if (!content || typeof content !== "string") {
       return Response.json({ error: "Content is required" }, { status: 400 });
@@ -37,9 +40,20 @@ Title:`,
     // Clean up the title (remove quotes, extra spaces, etc.)
     const cleanTitle = text.trim().replace(/^["']|["']$/g, "");
 
+    success = true;
+
+    // Track AI usage
+    await trackAiUsage(session.user.id!, "title", success, noteId);
+
     return Response.json({ title: cleanTitle });
   } catch (error) {
     console.error("AI Title error:", error);
+
+    // Track failed usage
+    if (session?.user?.id) {
+      await trackAiUsage(session.user.id, "title", success);
+    }
+
     return Response.json(
       { error: "Failed to generate title" },
       { status: 500 }

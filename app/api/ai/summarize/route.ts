@@ -2,15 +2,18 @@ import { openai } from "@ai-sdk/openai";
 import { generateText } from "ai";
 import { auth } from "@/auth";
 import { NextRequest } from "next/server";
+import { trackAiUsage } from "@/lib/ai-usage-tracker";
 
 export async function POST(request: NextRequest) {
+  let success = false;
+  const session = await auth();
+
   try {
-    const session = await auth();
     if (!session?.user) {
       return Response.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { content } = await request.json();
+    const { content, noteId } = await request.json();
 
     if (!content || typeof content !== "string") {
       return Response.json({ error: "Content is required" }, { status: 400 });
@@ -34,9 +37,20 @@ Summary:`,
       temperature: 0.3,
     });
 
+    success = true;
+
+    // Track AI usage
+    await trackAiUsage(session.user.id!, "summarize", success, noteId);
+
     return Response.json({ summary: text.trim() });
   } catch (error) {
     console.error("AI Summarize error:", error);
+
+    // Track failed usage
+    if (session?.user?.id) {
+      await trackAiUsage(session.user.id, "summarize", success);
+    }
+
     return Response.json(
       { error: "Failed to generate summary" },
       { status: 500 }

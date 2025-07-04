@@ -10,9 +10,12 @@ interface UseAiActionsReturn {
   error: string | null;
 
   // Actions
-  summarizeNote: (content: string) => Promise<string | null>;
-  expandShorthand: (shorthand: string) => Promise<string | null>;
-  generateTitle: (content: string) => Promise<string | null>;
+  summarizeNote: (content: string, noteId?: string) => Promise<string | null>;
+  expandShorthand: (
+    shorthand: string,
+    noteId?: string
+  ) => Promise<string | null>;
+  generateTitle: (content: string, noteId?: string) => Promise<string | null>;
   clearError: () => void;
 }
 
@@ -24,7 +27,10 @@ export function useAiActions(): UseAiActionsReturn {
 
   const clearError = () => setError(null);
 
-  const summarizeNote = async (content: string): Promise<string | null> => {
+  const summarizeNote = async (
+    content: string,
+    noteId?: string
+  ): Promise<string | null> => {
     if (!content || content.length < 100) {
       setError("Content must be at least 100 characters long to summarize");
       return null;
@@ -39,7 +45,7 @@ export function useAiActions(): UseAiActionsReturn {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ content }),
+        body: JSON.stringify({ content, noteId }),
       });
 
       const data = await response.json();
@@ -59,7 +65,10 @@ export function useAiActions(): UseAiActionsReturn {
     }
   };
 
-  const expandShorthand = async (shorthand: string): Promise<string | null> => {
+  const expandShorthand = async (
+    shorthand: string,
+    noteId?: string
+  ): Promise<string | null> => {
     if (!shorthand || shorthand.length < 10) {
       setError("Shorthand must be at least 10 characters long to expand");
       return null;
@@ -74,7 +83,7 @@ export function useAiActions(): UseAiActionsReturn {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ shorthand }),
+        body: JSON.stringify({ shorthand, noteId }),
       });
 
       const data = await response.json();
@@ -94,7 +103,10 @@ export function useAiActions(): UseAiActionsReturn {
     }
   };
 
-  const generateTitle = async (content: string): Promise<string | null> => {
+  const generateTitle = async (
+    content: string,
+    noteId?: string
+  ): Promise<string | null> => {
     if (!content || content.length < 20) {
       setError("Content must be at least 20 characters long to generate title");
       return null;
@@ -109,7 +121,7 @@ export function useAiActions(): UseAiActionsReturn {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ content }),
+        body: JSON.stringify({ content, noteId }),
       });
 
       const data = await response.json();

@@ -148,7 +148,7 @@ export function NoteEditor({
 
   const handleSummarize = async () => {
     const content = form.getValues("content");
-    const summary = await summarizeNote(content);
+    const summary = await summarizeNote(content, noteId || undefined);
     if (summary) {
       form.setValue("content", summary);
     }
@@ -156,7 +156,7 @@ export function NoteEditor({
 
   const handleExpand = async () => {
     const content = form.getValues("content");
-    const expanded = await expandShorthand(content);
+    const expanded = await expandShorthand(content, noteId || undefined);
     if (expanded) {
       form.setValue("content", expanded);
     }
@@ -164,7 +164,7 @@ export function NoteEditor({
 
   const handleGenerateTitle = async () => {
     const content = form.getValues("content");
-    const title = await generateTitle(content);
+    const title = await generateTitle(content, noteId || undefined);
     if (title) {
       form.setValue("title", title);
     }

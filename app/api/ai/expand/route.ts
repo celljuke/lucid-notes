@@ -2,15 +2,18 @@ import { openai } from "@ai-sdk/openai";
 import { generateText } from "ai";
 import { auth } from "@/auth";
 import { NextRequest } from "next/server";
+import { trackAiUsage } from "@/lib/ai-usage-tracker";
 
 export async function POST(request: NextRequest) {
+  let success = false;
+  const session = await auth();
+
   try {
-    const session = await auth();
     if (!session?.user) {
       return Response.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { shorthand } = await request.json();
+    const { shorthand, noteId } = await request.json();
 
     if (!shorthand || typeof shorthand !== "string") {
       return Response.json(
@@ -37,9 +40,20 @@ Expanded Note:`,
       temperature: 0.4,
     });
 
+    success = true;
+
+    // Track AI usage
+    await trackAiUsage(session.user.id!, "expand", success, noteId);
+
     return Response.json({ expandedContent: text.trim() });
   } catch (error) {
     console.error("AI Expand error:", error);
+
+    // Track failed usage
+    if (session?.user?.id) {
+      await trackAiUsage(session.user.id, "expand", success);
+    }
+
     return Response.json(
       { error: "Failed to expand shorthand" },
       { status: 500 }
