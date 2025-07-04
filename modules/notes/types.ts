@@ -121,6 +121,19 @@ export interface ApiError {
   details?: unknown;
 }
 
+// AI API Response Types
+export interface AiSummaryResponse {
+  summary: string;
+}
+
+export interface AiExpandResponse {
+  expandedContent: string;
+}
+
+export interface AiTitleResponse {
+  title: string;
+}
+
 // Constants - Pastel Colors
 export const NOTE_COLOR_OPTIONS: ColorOption[] = [
   { name: "Yellow", value: "#FFF9C4" },

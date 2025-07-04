@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Save, Tag, Pin } from "lucide-react";
+import { Save, Tag, Pin, Sparkles, FileText, Lightbulb } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
@@ -37,6 +37,7 @@ import {
   NOTE_COLOR_OPTIONS,
 } from "@/modules/notes/types";
 import { createNoteSchema } from "@/modules/notes/schema";
+import { useAiActions } from "@/modules/notes/hooks/use-ai-actions";
 
 type NoteFormData = CreateNoteData;
 
@@ -50,6 +51,17 @@ export function NoteEditor({
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [tagInput, setTagInput] = useState("");
+
+  const {
+    isSummarizing,
+    isExpanding,
+    isGeneratingTitle,
+    error: aiError,
+    summarizeNote,
+    expandShorthand,
+    generateTitle,
+    clearError,
+  } = useAiActions();
 
   const form = useForm<NoteFormData>({
     resolver: zodResolver(createNoteSchema),
@@ -134,6 +146,32 @@ export function NoteEditor({
     }
   };
 
+  const handleSummarize = async () => {
+    const content = form.getValues("content");
+    const summary = await summarizeNote(content);
+    if (summary) {
+      form.setValue("content", summary);
+    }
+  };
+
+  const handleExpand = async () => {
+    const content = form.getValues("content");
+    const expanded = await expandShorthand(content);
+    if (expanded) {
+      form.setValue("content", expanded);
+    }
+  };
+
+  const handleGenerateTitle = async () => {
+    const content = form.getValues("content");
+    const title = await generateTitle(content);
+    if (title) {
+      form.setValue("title", title);
+    }
+  };
+
+  const hasContent = form.watch("content");
+
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
@@ -187,6 +225,74 @@ export function NoteEditor({
                   </FormItem>
                 )}
               />
+
+              {/* AI Actions */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                    AI Actions
+                  </h3>
+                  {aiError && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={clearError}
+                      className="text-red-600 hover:text-red-700 text-xs"
+                    >
+                      Clear Error
+                    </Button>
+                  )}
+                </div>
+
+                {aiError && (
+                  <div className="p-3 bg-red-50 border border-red-200 rounded-md">
+                    <p className="text-sm text-red-600">{aiError}</p>
+                  </div>
+                )}
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={handleGenerateTitle}
+                    disabled={isGeneratingTitle || !hasContent}
+                    className="flex items-center space-x-2"
+                  >
+                    <Lightbulb className="h-4 w-4" />
+                    <span>
+                      {isGeneratingTitle ? "Generating..." : "Auto Title"}
+                    </span>
+                  </Button>
+
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={handleExpand}
+                    disabled={isExpanding || !hasContent}
+                    className="flex items-center space-x-2"
+                  >
+                    <FileText className="h-4 w-4" />
+                    <span>{isExpanding ? "Expanding..." : "Expand Text"}</span>
+                  </Button>
+
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={handleSummarize}
+                    disabled={isSummarizing || !hasContent}
+                    className="flex items-center space-x-2"
+                  >
+                    <Sparkles className="h-4 w-4" />
+                    <span>
+                      {isSummarizing ? "Summarizing..." : "Summarize"}
+                    </span>
+                  </Button>
+                </div>
+              </div>
 
               {/* Tags */}
               <FormField
