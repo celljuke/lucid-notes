@@ -2,7 +2,7 @@ import { prisma } from "@/lib/prisma";
 
 export async function trackAiUsage(
   userId: string,
-  feature: "title" | "expand" | "summarize",
+  feature: "title" | "expand" | "summarize" | "similarity",
   success: boolean,
   noteId?: string
 ) {

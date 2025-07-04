@@ -38,6 +38,7 @@ import {
 } from "@/modules/notes/types";
 import { createNoteSchema } from "@/modules/notes/schema";
 import { useAiActions } from "@/modules/notes/hooks/use-ai-actions";
+import { RelatedNotes } from "./related-notes";
 
 type NoteFormData = CreateNoteData;
 
@@ -191,7 +192,7 @@ export function NoteEditor({
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent
-        className="max-w-2xl max-h-[90vh] overflow-y-auto"
+        className="max-w-4xl max-h-[90vh] overflow-y-auto"
         onKeyDown={handleFormKeyDown}
       >
         <DialogHeader>
@@ -447,6 +448,13 @@ export function NoteEditor({
               />
             </form>
           </Form>
+        )}
+
+        {/* Related Notes for existing notes */}
+        {noteId && !isLoading && (
+          <div className="mt-6 border-t pt-6">
+            <RelatedNotes noteId={noteId} />
+          </div>
         )}
 
         <DialogFooter>

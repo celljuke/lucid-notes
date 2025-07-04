@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
+import { generateEmbedding, prepareTextForEmbedding } from "@/lib/embeddings";
 
 const createNoteSchema = z.object({
   title: z.string().min(1).max(200),
@@ -81,10 +82,24 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const validatedData = createNoteSchema.parse(body);
 
+    // Generate embedding for the note
+    let embedding: number[] = [];
+    try {
+      const textForEmbedding = prepareTextForEmbedding(
+        validatedData.title,
+        validatedData.content
+      );
+      embedding = await generateEmbedding(textForEmbedding);
+    } catch (error) {
+      console.error("Failed to generate embedding:", error);
+      // Continue without embedding - it can be generated later
+    }
+
     const note = await prisma.note.create({
       data: {
         ...validatedData,
         userId: session.user.id,
+        embedding,
       },
       include: {
         folder: true,

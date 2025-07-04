@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
+import { generateEmbedding, prepareTextForEmbedding } from "@/lib/embeddings";
 
 const updateNoteSchema = z.object({
   title: z.string().min(1).max(200).optional(),
@@ -73,11 +74,29 @@ export async function PUT(
       return NextResponse.json({ error: "Note not found" }, { status: 404 });
     }
 
+    // Generate new embedding if title or content changed
+    let dataToUpdate: any = { ...validatedData };
+    if (
+      validatedData.title !== undefined ||
+      validatedData.content !== undefined
+    ) {
+      try {
+        const newTitle = validatedData.title ?? note.title;
+        const newContent = validatedData.content ?? note.content;
+        const textForEmbedding = prepareTextForEmbedding(newTitle, newContent);
+        const embedding = await generateEmbedding(textForEmbedding);
+        dataToUpdate = { ...dataToUpdate, embedding };
+      } catch (error) {
+        console.error("Failed to generate embedding:", error);
+        // Continue without updating embedding
+      }
+    }
+
     const updatedNote = await prisma.note.update({
       where: {
         id: id,
       },
-      data: validatedData,
+      data: dataToUpdate,
       include: {
         folder: true,
       },

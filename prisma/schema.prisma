@@ -94,6 +94,7 @@ model Note {
   color     String   @default("#FFE066")
   isPublic  Boolean  @default(false) @map("is_public")
   isPinned  Boolean  @default(false) @map("is_pinned")
+  embedding Float[]  @default([]) // Vector embeddings for similarity search
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
