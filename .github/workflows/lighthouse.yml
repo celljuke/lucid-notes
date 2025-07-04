@@ -1,0 +1,65 @@
+name: Lighthouse CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lighthouse:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: lucid_user
+          POSTGRES_PASSWORD: lucid_password
+          POSTGRES_DB: lucid_notes
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Setup environment variables
+        run: |
+          echo "DATABASE_URL=postgresql://lucid_user:lucid_password@localhost:5432/lucid_notes" >> $GITHUB_ENV
+          echo "DIRECT_URL=postgresql://lucid_user:lucid_password@localhost:5432/lucid_notes" >> $GITHUB_ENV
+          echo "NEXTAUTH_SECRET=test-secret-for-ci" >> $GITHUB_ENV
+          echo "NEXTAUTH_URL=http://localhost:3000" >> $GITHUB_ENV
+          echo "OPENAI_API_KEY=sk-test-key" >> $GITHUB_ENV
+
+      - name: Generate Prisma client
+        run: npm run db:generate
+
+      - name: Setup database
+        run: npm run db:push
+
+      - name: Build application
+        run: npm run build
+
+      - name: Run Lighthouse CI
+        uses: treosh/lighthouse-ci-action@v12
+        with:
+          configPath: "./lighthouserc.json"
+          temporaryPublicStorage: true
+          runs: 3
+        env:
+          LHCI_GITHUB_APP_TOKEN: ${{ secrets.LHCI_GITHUB_APP_TOKEN }}
