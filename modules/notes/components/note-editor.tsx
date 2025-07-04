@@ -139,10 +139,26 @@ export function NoteEditor({
     }
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
+  const handleTagKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && tagInput.trim()) {
       e.preventDefault();
       handleAddTag();
+    }
+  };
+
+  const handleFormKeyDown = (e: React.KeyboardEvent) => {
+    // Submit form on Ctrl+Enter or Cmd+Enter
+    if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
+      e.preventDefault();
+      form.handleSubmit(handleSubmit)();
+    }
+  };
+
+  const handleTitleKeyDown = (e: React.KeyboardEvent) => {
+    // Submit form on Enter in title field (single line input)
+    if (e.key === "Enter") {
+      e.preventDefault();
+      form.handleSubmit(handleSubmit)();
     }
   };
 
@@ -174,7 +190,10 @@ export function NoteEditor({
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent
+        className="max-w-2xl max-h-[90vh] overflow-y-auto"
+        onKeyDown={handleFormKeyDown}
+      >
         <DialogHeader>
           <DialogTitle>{noteId ? "Edit Note" : "Create New Note"}</DialogTitle>
         </DialogHeader>
@@ -198,6 +217,7 @@ export function NoteEditor({
                       <Input
                         placeholder="Enter note title..."
                         className="text-lg"
+                        onKeyDown={handleTitleKeyDown}
                         {...field}
                       />
                     </FormControl>
@@ -307,7 +327,7 @@ export function NoteEditor({
                           <Input
                             value={tagInput}
                             onChange={(e) => setTagInput(e.target.value)}
-                            onKeyDown={handleKeyDown}
+                            onKeyDown={handleTagKeyDown}
                             placeholder="Add a tag..."
                             className="flex-1"
                           />
@@ -430,23 +450,34 @@ export function NoteEditor({
         )}
 
         <DialogFooter>
-          <Button type="button" variant="outline" onClick={onClose}>
-            Cancel
-          </Button>
-          <Button
-            type="submit"
-            disabled={isSaving || isLoading}
-            onClick={form.handleSubmit(handleSubmit)}
-          >
-            {isSaving ? (
-              "Saving..."
-            ) : (
-              <>
-                <Save className="h-4 w-4 mr-2" />
-                Save Note
-              </>
-            )}
-          </Button>
+          <div className="flex items-center justify-between w-full">
+            <p className="text-xs text-gray-500">
+              Press{" "}
+              <kbd className="px-1 py-0.5 text-xs bg-gray-100 border border-gray-300 rounded">
+                Cmd+Enter
+              </kbd>{" "}
+              to save
+            </p>
+            <div className="flex gap-2">
+              <Button type="button" variant="outline" onClick={onClose}>
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                disabled={isSaving || isLoading}
+                onClick={form.handleSubmit(handleSubmit)}
+              >
+                {isSaving ? (
+                  "Saving..."
+                ) : (
+                  <>
+                    <Save className="h-4 w-4 mr-2" />
+                    Save Note
+                  </>
+                )}
+              </Button>
+            </div>
+          </div>
         </DialogFooter>
       </DialogContent>
     </Dialog>
