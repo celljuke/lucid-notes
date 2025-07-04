@@ -136,3 +136,163 @@
     -webkit-line-clamp: 6;
   }
 }
+
+/* Syntax highlighting for code blocks */
+.hljs {
+  display: block;
+  overflow-x: auto;
+  padding: 0.5em;
+  background: #f3f4f6;
+  color: #374151;
+}
+
+.dark .hljs {
+  background: #1f2937;
+  color: #e5e7eb;
+}
+
+.hljs-comment,
+.hljs-quote {
+  color: #6b7280;
+  font-style: italic;
+}
+
+.hljs-keyword,
+.hljs-selector-tag,
+.hljs-subst {
+  color: #dc2626;
+}
+
+.dark .hljs-keyword,
+.dark .hljs-selector-tag,
+.dark .hljs-subst {
+  color: #f87171;
+}
+
+.hljs-number,
+.hljs-literal,
+.hljs-variable,
+.hljs-template-variable,
+.hljs-tag .hljs-attr {
+  color: #0891b2;
+}
+
+.dark .hljs-number,
+.dark .hljs-literal,
+.dark .hljs-variable,
+.dark .hljs-template-variable,
+.dark .hljs-tag .hljs-attr {
+  color: #06b6d4;
+}
+
+.hljs-string,
+.hljs-doctag {
+  color: #059669;
+}
+
+.dark .hljs-string,
+.dark .hljs-doctag {
+  color: #34d399;
+}
+
+.hljs-title,
+.hljs-section,
+.hljs-selector-id {
+  color: #7c3aed;
+  font-weight: bold;
+}
+
+.dark .hljs-title,
+.dark .hljs-section,
+.dark .hljs-selector-id {
+  color: #a78bfa;
+}
+
+.hljs-type,
+.hljs-class .hljs-title {
+  color: #d97706;
+}
+
+.dark .hljs-type,
+.dark .hljs-class .hljs-title {
+  color: #fbbf24;
+}
+
+.hljs-tag,
+.hljs-name,
+.hljs-attribute {
+  color: #0891b2;
+  font-weight: normal;
+}
+
+.dark .hljs-tag,
+.dark .hljs-name,
+.dark .hljs-attribute {
+  color: #06b6d4;
+}
+
+.hljs-regexp,
+.hljs-link {
+  color: #059669;
+}
+
+.dark .hljs-regexp,
+.dark .hljs-link {
+  color: #34d399;
+}
+
+.hljs-symbol,
+.hljs-bullet {
+  color: #7c3aed;
+}
+
+.dark .hljs-symbol,
+.dark .hljs-bullet {
+  color: #a78bfa;
+}
+
+.hljs-built_in,
+.hljs-builtin-name {
+  color: #dc2626;
+}
+
+.dark .hljs-built_in,
+.dark .hljs-builtin-name {
+  color: #f87171;
+}
+
+.hljs-meta {
+  color: #6b7280;
+}
+
+.dark .hljs-meta {
+  color: #9ca3af;
+}
+
+.hljs-deletion {
+  background: #fef2f2;
+  color: #dc2626;
+}
+
+.dark .hljs-deletion {
+  background: #7f1d1d;
+  color: #f87171;
+}
+
+.hljs-addition {
+  background: #f0fdf4;
+  color: #059669;
+}
+
+.dark .hljs-addition {
+  background: #14532d;
+  color: #34d399;
+}
+
+.hljs-emphasis {
+  font-style: italic;
+}
+
+.hljs-strong {
+  font-weight: bold;
+}

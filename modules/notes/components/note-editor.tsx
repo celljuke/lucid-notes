@@ -6,7 +6,6 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
@@ -39,6 +38,8 @@ import {
 import { createNoteSchema } from "@/modules/notes/schema";
 import { useAiActions } from "@/modules/notes/hooks/use-ai-actions";
 import { RelatedNotes } from "./related-notes";
+import { MarkdownEditor } from "./markdown-editor";
+import { Badge } from "@/components/ui/badge";
 
 type NoteFormData = CreateNoteData;
 
@@ -52,6 +53,7 @@ export function NoteEditor({
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [tagInput, setTagInput] = useState("");
+  const [relatedNotesCount, setRelatedNotesCount] = useState(0);
 
   const {
     isSummarizing,
@@ -192,276 +194,302 @@ export function NoteEditor({
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent
-        className="max-w-4xl max-h-[90vh] overflow-y-auto"
+        className="!w-[95vw] !max-w-4xl !h-[95vh] !max-h-[95vh] flex flex-col !p-0 gap-0"
         onKeyDown={handleFormKeyDown}
       >
-        <DialogHeader>
-          <DialogTitle>{noteId ? "Edit Note" : "Create New Note"}</DialogTitle>
+        <DialogHeader className="flex-shrink-0 p-4 border-b">
+          <div className="flex items-center justify-between">
+            <DialogTitle className="text-xl">
+              {noteId ? "Edit Note" : "Create New Note"}
+            </DialogTitle>
+          </div>
         </DialogHeader>
 
         {isLoading ? (
           <div className="text-center py-8">Loading...</div>
         ) : (
-          <Form {...form}>
-            <form
-              onSubmit={form.handleSubmit(handleSubmit)}
-              className="space-y-6"
-            >
-              {/* Title */}
-              <FormField
-                control={form.control}
-                name="title"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Title *</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="Enter note title..."
-                        className="text-lg"
-                        onKeyDown={handleTitleKeyDown}
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+          <div className="flex-1 overflow-hidden">
+            <Form {...form}>
+              <form
+                onSubmit={form.handleSubmit(handleSubmit)}
+                className="h-full flex"
+              >
+                {/* Main Content Area */}
+                <div className="flex-1 flex flex-col p-6 pr-4 overflow-y-auto">
+                  {/* Title */}
+                  <FormField
+                    control={form.control}
+                    name="title"
+                    render={({ field }) => (
+                      <FormItem className="mb-6">
+                        <FormLabel className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                          Title *
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="Enter note title..."
+                            onKeyDown={handleTitleKeyDown}
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-              {/* Content */}
-              <FormField
-                control={form.control}
-                name="content"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Content</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        placeholder="Write your note content here..."
-                        rows={8}
-                        className="resize-none"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                  {/* Content Area with MarkdownEditor */}
+                  <FormField
+                    control={form.control}
+                    name="content"
+                    render={({ field }) => (
+                      <FormItem className="flex-1 flex flex-col mb-6">
+                        <FormControl>
+                          <MarkdownEditor
+                            title="Description"
+                            placeholder="Write your note content here... (Supports Markdown)"
+                            initialValue={field.value}
+                            onChange={field.onChange}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-              {/* AI Actions */}
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                    AI Actions
-                  </h3>
-                  {aiError && (
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={clearError}
-                      className="text-red-600 hover:text-red-700 text-xs"
-                    >
-                      Clear Error
-                    </Button>
+                  {/* Related Notes for existing notes */}
+                  {noteId && !isLoading && (
+                    <div className="border-t pt-6">
+                      <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
+                          Related Notes
+                        </h3>
+                        {relatedNotesCount > 0 && (
+                          <Badge variant="secondary" className="text-xs">
+                            {relatedNotesCount}
+                          </Badge>
+                        )}
+                      </div>
+                      <RelatedNotes
+                        noteId={noteId}
+                        onCountChange={setRelatedNotesCount}
+                      />
+                    </div>
                   )}
                 </div>
 
-                {aiError && (
-                  <div className="p-3 bg-red-50 border border-red-200 rounded-md">
-                    <p className="text-sm text-red-600">{aiError}</p>
-                  </div>
-                )}
-
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={handleGenerateTitle}
-                    disabled={isGeneratingTitle || !hasContent}
-                    className="flex items-center space-x-2"
-                  >
-                    <Lightbulb className="h-4 w-4" />
-                    <span>
-                      {isGeneratingTitle ? "Generating..." : "Auto Title"}
-                    </span>
-                  </Button>
-
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={handleExpand}
-                    disabled={isExpanding || !hasContent}
-                    className="flex items-center space-x-2"
-                  >
-                    <FileText className="h-4 w-4" />
-                    <span>{isExpanding ? "Expanding..." : "Expand Text"}</span>
-                  </Button>
-
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={handleSummarize}
-                    disabled={isSummarizing || !hasContent}
-                    className="flex items-center space-x-2"
-                  >
-                    <Sparkles className="h-4 w-4" />
-                    <span>
-                      {isSummarizing ? "Summarizing..." : "Summarize"}
-                    </span>
-                  </Button>
-                </div>
-              </div>
-
-              {/* Tags */}
-              <FormField
-                control={form.control}
-                name="tags"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Tags * (Required)</FormLabel>
-                    <FormControl>
-                      <div className="space-y-2">
-                        <div className="flex gap-2">
-                          <Input
-                            value={tagInput}
-                            onChange={(e) => setTagInput(e.target.value)}
-                            onKeyDown={handleTagKeyDown}
-                            placeholder="Add a tag..."
-                            className="flex-1"
-                          />
+                {/* Sidebar */}
+                <div className="w-80 border-l bg-gray-50 dark:bg-gray-900/50 p-6 overflow-y-auto">
+                  <div className="space-y-6">
+                    {/* AI Actions */}
+                    <div className="space-y-3">
+                      <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
+                        AI Actions
+                      </h3>
+                      {aiError && (
+                        <div className="p-3 bg-red-50 border border-red-200 rounded-md">
+                          <p className="text-sm text-red-600">{aiError}</p>
                           <Button
                             type="button"
-                            onClick={handleAddTag}
-                            variant="outline"
+                            variant="ghost"
+                            size="sm"
+                            onClick={clearError}
+                            className="text-red-600 hover:text-red-700 text-xs mt-1 p-0 h-auto"
                           >
-                            Add
+                            Clear Error
                           </Button>
                         </div>
-                        <div className="flex flex-wrap gap-2">
-                          {field.value.map((tag) => (
-                            <span
-                              key={tag}
-                              className="inline-flex items-center px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm"
-                            >
-                              <Tag className="h-3 w-3 mr-1" />
-                              {tag}
-                              <button
-                                type="button"
-                                onClick={() => handleRemoveTag(tag)}
-                                className="ml-2 text-blue-600 hover:text-blue-800"
-                              >
-                                ×
-                              </button>
-                            </span>
-                          ))}
-                        </div>
+                      )}
+
+                      <div className="space-y-2">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={handleGenerateTitle}
+                          disabled={isGeneratingTitle || !hasContent}
+                          className="w-full justify-start"
+                        >
+                          <Lightbulb className="h-4 w-4 mr-2" />
+                          {isGeneratingTitle ? "Generating..." : "Auto Title"}
+                        </Button>
+
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={handleExpand}
+                          disabled={isExpanding || !hasContent}
+                          className="w-full justify-start"
+                        >
+                          <FileText className="h-4 w-4 mr-2" />
+                          {isExpanding ? "Expanding..." : "Expand Text"}
+                        </Button>
+
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={handleSummarize}
+                          disabled={isSummarizing || !hasContent}
+                          className="w-full justify-start"
+                        >
+                          <Sparkles className="h-4 w-4 mr-2" />
+                          {isSummarizing ? "Summarizing..." : "Summarize"}
+                        </Button>
                       </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              {/* Folder */}
-              <FormField
-                control={form.control}
-                name="folderId"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Folder (Optional)</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      value={field.value || ""}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select a folder..." />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {folders.map((folder) => (
-                          <SelectItem key={folder.id} value={folder.id}>
-                            {folder.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              {/* Color */}
-              <FormField
-                control={form.control}
-                name="color"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Color</FormLabel>
-                    <FormControl>
-                      <div className="flex gap-2">
-                        {NOTE_COLOR_OPTIONS.map((option) => (
-                          <button
-                            key={option.value}
-                            type="button"
-                            onClick={() => field.onChange(option.value)}
-                            className={`w-8 h-8 rounded-full border-2 transition-all hover:scale-110 ${
-                              field.value === option.value
-                                ? "border-gray-800"
-                                : "border-gray-300"
-                            }`}
-                            style={{ backgroundColor: option.value }}
-                            title={option.name}
-                          />
-                        ))}
-                      </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              {/* Pin */}
-              <FormField
-                control={form.control}
-                name="isPinned"
-                render={({ field }) => (
-                  <FormItem>
-                    <div className="flex items-center space-x-2">
-                      <FormControl>
-                        <Checkbox
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                        />
-                      </FormControl>
-                      <FormLabel className="flex items-center space-x-1 cursor-pointer">
-                        <Pin className="h-4 w-4" />
-                        <span>Pin this note</span>
-                      </FormLabel>
                     </div>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </form>
-          </Form>
-        )}
 
-        {/* Related Notes for existing notes */}
-        {noteId && !isLoading && (
-          <div className="mt-6 border-t pt-6">
-            <RelatedNotes noteId={noteId} />
+                    {/* Tags */}
+                    <FormField
+                      control={form.control}
+                      name="tags"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-sm font-semibold text-gray-900 dark:text-white">
+                            Tags *
+                          </FormLabel>
+                          <FormControl>
+                            <div className="space-y-2">
+                              <div className="flex gap-2">
+                                <Input
+                                  value={tagInput}
+                                  onChange={(e) => setTagInput(e.target.value)}
+                                  onKeyDown={handleTagKeyDown}
+                                  placeholder="Add a tag..."
+                                  className="flex-1 h-8 text-sm"
+                                />
+                                <Button
+                                  type="button"
+                                  onClick={handleAddTag}
+                                  variant="outline"
+                                  size="sm"
+                                  className="h-8 px-2"
+                                >
+                                  Add
+                                </Button>
+                              </div>
+                              <div className="flex flex-wrap gap-1">
+                                {field.value.map((tag) => (
+                                  <span
+                                    key={tag}
+                                    className="inline-flex items-center px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs"
+                                  >
+                                    <Tag className="h-3 w-3 mr-1" />
+                                    {tag}
+                                    <button
+                                      type="button"
+                                      onClick={() => handleRemoveTag(tag)}
+                                      className="ml-1 text-blue-600 hover:text-blue-800"
+                                    >
+                                      ×
+                                    </button>
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    {/* Folder */}
+                    <FormField
+                      control={form.control}
+                      name="folderId"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-sm font-semibold text-gray-900 dark:text-white">
+                            Folder
+                          </FormLabel>
+                          <Select
+                            onValueChange={field.onChange}
+                            value={field.value || ""}
+                          >
+                            <FormControl>
+                              <SelectTrigger className="h-8">
+                                <SelectValue placeholder="Select a folder..." />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {folders.map((folder) => (
+                                <SelectItem key={folder.id} value={folder.id}>
+                                  {folder.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    {/* Color */}
+                    <FormField
+                      control={form.control}
+                      name="color"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-sm font-semibold text-gray-900 dark:text-white">
+                            Color
+                          </FormLabel>
+                          <FormControl>
+                            <div className="flex gap-2 flex-wrap">
+                              {NOTE_COLOR_OPTIONS.map((option) => (
+                                <button
+                                  key={option.value}
+                                  type="button"
+                                  onClick={() => field.onChange(option.value)}
+                                  className={`w-6 h-6 rounded-full border-2 transition-all hover:scale-110 ${
+                                    field.value === option.value
+                                      ? "border-gray-800 dark:border-gray-200"
+                                      : "border-gray-300"
+                                  }`}
+                                  style={{ backgroundColor: option.value }}
+                                  title={option.name}
+                                />
+                              ))}
+                            </div>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    {/* Pin */}
+                    <FormField
+                      control={form.control}
+                      name="isPinned"
+                      render={({ field }) => (
+                        <FormItem>
+                          <div className="flex items-center space-x-2">
+                            <FormControl>
+                              <Checkbox
+                                checked={field.value}
+                                onCheckedChange={field.onChange}
+                              />
+                            </FormControl>
+                            <FormLabel className="flex items-center space-x-1 cursor-pointer text-sm">
+                              <Pin className="h-4 w-4" />
+                              <span>Pin this note</span>
+                            </FormLabel>
+                          </div>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                </div>
+              </form>
+            </Form>
           </div>
         )}
 
-        <DialogFooter>
+        <DialogFooter className="flex-shrink-0 p-4 border-t">
           <div className="flex items-center justify-between w-full">
             <p className="text-xs text-gray-500">
               Press{" "}
-              <kbd className="px-1 py-0.5 text-xs bg-gray-100 border border-gray-300 rounded">
+              <kbd className="px-1 py-0.5 text-xs bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded">
                 Cmd+Enter
               </kbd>{" "}
               to save

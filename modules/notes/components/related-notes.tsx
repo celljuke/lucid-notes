@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -28,9 +27,14 @@ interface RelatedNote {
 interface RelatedNotesProps {
   noteId: string;
   className?: string;
+  onCountChange?: (count: number) => void;
 }
 
-export function RelatedNotes({ noteId, className }: RelatedNotesProps) {
+export function RelatedNotes({
+  noteId,
+  className,
+  onCountChange,
+}: RelatedNotesProps) {
   const [relatedNotes, setRelatedNotes] = useState<RelatedNote[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -41,6 +45,10 @@ export function RelatedNotes({ noteId, className }: RelatedNotesProps) {
       fetchRelatedNotes();
     }
   }, [noteId]);
+
+  useEffect(() => {
+    onCountChange?.(relatedNotes.length);
+  }, [relatedNotes.length, onCountChange]);
 
   const fetchRelatedNotes = async () => {
     setIsLoading(true);
@@ -79,143 +87,104 @@ export function RelatedNotes({ noteId, className }: RelatedNotesProps) {
 
   if (isLoading) {
     return (
-      <Card className={className}>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Sparkles className="h-5 w-5" />
-            Related Notes
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {[...Array(3)].map((_, i) => (
-            <div key={i} className="space-y-2">
-              <Skeleton className="h-4 w-3/4" />
-              <Skeleton className="h-3 w-full" />
-              <Skeleton className="h-3 w-1/2" />
-            </div>
-          ))}
-        </CardContent>
-      </Card>
+      <div className={`space-y-4 ${className}`}>
+        {[...Array(3)].map((_, i) => (
+          <div key={i} className="space-y-2">
+            <Skeleton className="h-4 w-3/4" />
+            <Skeleton className="h-3 w-full" />
+            <Skeleton className="h-3 w-1/2" />
+          </div>
+        ))}
+      </div>
     );
   }
 
   if (error) {
     return (
-      <Card className={className}>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Sparkles className="h-5 w-5" />
-            Related Notes
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-center py-8 text-gray-500">
-            <p className="text-sm">{error}</p>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={fetchRelatedNotes}
-              className="mt-2"
-            >
-              Try Again
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+      <div className={`text-center py-8 text-gray-500 ${className}`}>
+        <p className="text-sm">{error}</p>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={fetchRelatedNotes}
+          className="mt-2"
+        >
+          Try Again
+        </Button>
+      </div>
     );
   }
 
   if (relatedNotes.length === 0) {
     return (
-      <Card className={className}>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Sparkles className="h-5 w-5" />
-            Related Notes
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-center py-8 text-gray-500">
-            <Sparkles className="h-8 w-8 mx-auto mb-2 opacity-50" />
-            <p className="text-sm">No related notes found yet.</p>
-            <p className="text-xs text-gray-400 mt-1">
-              Related notes will appear as you create more content.
-            </p>
-          </div>
-        </CardContent>
-      </Card>
+      <div className={`text-center py-8 text-gray-500 ${className}`}>
+        <Sparkles className="h-8 w-8 mx-auto mb-2 opacity-50" />
+        <p className="text-sm">No related notes found yet.</p>
+        <p className="text-xs text-gray-400 mt-1">
+          Related notes will appear as you create more content.
+        </p>
+      </div>
     );
   }
 
   return (
-    <Card className={className}>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Sparkles className="h-5 w-5" />
-          Related Notes
-          <Badge variant="secondary" className="ml-auto">
-            {relatedNotes.length}
-          </Badge>
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        {relatedNotes.map((note) => (
-          <div
-            key={note.id}
-            className="group relative rounded-lg border p-4 hover:shadow-md transition-shadow cursor-pointer"
-            style={{ backgroundColor: note.color + "15" }}
-            onClick={() => handleNoteClick(note.id)}
-          >
-            <div className="flex items-start justify-between mb-2">
-              <h4 className="font-semibold text-sm line-clamp-1 pr-2">
-                {note.title}
-              </h4>
-              <div className="flex items-center gap-2">
-                <Badge
-                  variant="secondary"
-                  className={`text-xs ${getSimilarityColor(note.similarity)}`}
-                >
-                  {Math.round(note.similarity * 100)}%
-                </Badge>
-                <ExternalLink className="h-3 w-3 opacity-0 group-hover:opacity-50 transition-opacity" />
-              </div>
-            </div>
-
-            <p className="text-xs text-gray-600 mb-3 line-clamp-2">
-              {note.content}
-            </p>
-
-            <div className="flex items-center justify-between">
-              <div className="flex flex-wrap gap-1">
-                {note.tags.slice(0, 3).map((tag) => (
-                  <Badge key={tag} variant="outline" className="text-xs">
-                    {tag}
-                  </Badge>
-                ))}
-                {note.tags.length > 3 && (
-                  <Badge variant="outline" className="text-xs">
-                    +{note.tags.length - 3}
-                  </Badge>
-                )}
-              </div>
-
-              <div className="flex items-center gap-2 text-xs text-gray-500">
-                {note.folder && (
-                  <span
-                    className="w-2 h-2 rounded-full"
-                    style={{ backgroundColor: note.folder.color }}
-                  />
-                )}
-                <span>
-                  {formatDistanceToNow(new Date(note.updatedAt), {
-                    addSuffix: true,
-                  })}
-                </span>
-              </div>
+    <div className={`space-y-4 ${className}`}>
+      {relatedNotes.map((note) => (
+        <div
+          key={note.id}
+          className="group relative rounded-lg border p-4 hover:shadow-md transition-shadow cursor-pointer"
+          style={{ backgroundColor: note.color + "15" }}
+          onClick={() => handleNoteClick(note.id)}
+        >
+          <div className="flex items-start justify-between mb-2">
+            <h4 className="font-semibold text-sm line-clamp-1 pr-2">
+              {note.title}
+            </h4>
+            <div className="flex items-center gap-2">
+              <Badge
+                variant="secondary"
+                className={`text-xs ${getSimilarityColor(note.similarity)}`}
+              >
+                {Math.round(note.similarity * 100)}%
+              </Badge>
+              <ExternalLink className="h-3 w-3 opacity-0 group-hover:opacity-50 transition-opacity" />
             </div>
           </div>
-        ))}
-      </CardContent>
-    </Card>
+
+          <p className="text-xs text-gray-600 mb-3 line-clamp-2">
+            {note.content}
+          </p>
+
+          <div className="flex items-center justify-between">
+            <div className="flex flex-wrap gap-1">
+              {note.tags.slice(0, 3).map((tag) => (
+                <Badge key={tag} variant="outline" className="text-xs">
+                  {tag}
+                </Badge>
+              ))}
+              {note.tags.length > 3 && (
+                <Badge variant="outline" className="text-xs">
+                  +{note.tags.length - 3}
+                </Badge>
+              )}
+            </div>
+
+            <div className="flex items-center gap-2 text-xs text-gray-500">
+              {note.folder && (
+                <span
+                  className="w-2 h-2 rounded-full"
+                  style={{ backgroundColor: note.folder.color }}
+                />
+              )}
+              <span>
+                {formatDistanceToNow(new Date(note.updatedAt), {
+                  addSuffix: true,
+                })}
+              </span>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
   );
 }
