@@ -50,12 +50,12 @@ export function AppSidebar() {
         {/* Create Note Button */}
         <motion.button
           onClick={handleCreateClick}
-          className="w-12 h-12 bg-black dark:bg-white rounded-full flex items-center justify-center hover:scale-105 transition-transform"
+          className="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white rounded-full flex items-center justify-center hover:scale-105 transition-transform"
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
           title="Create Note"
         >
-          <Plus className="w-6 h-6 text-white dark:text-black" />
+          <Plus className="w-6 h-6" />
         </motion.button>
 
         {/* Notes Button */}
