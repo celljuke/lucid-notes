@@ -212,16 +212,16 @@ export function NoteEditor({
             <Form {...form}>
               <form
                 onSubmit={form.handleSubmit(handleSubmit)}
-                className="h-full flex"
+                className="h-full flex flex-col lg:flex-row overflow-y-auto lg:overflow-y-visible"
               >
                 {/* Main Content Area */}
-                <div className="flex-1 flex flex-col p-6 pr-4 overflow-y-auto">
+                <div className="flex-1 flex flex-col p-4 lg:p-6 lg:pr-4 lg:overflow-y-auto">
                   {/* Title */}
                   <FormField
                     control={form.control}
                     name="title"
                     render={({ field }) => (
-                      <FormItem className="mb-6">
+                      <FormItem className="mb-4 lg:mb-6">
                         <FormLabel className="text-sm font-medium text-gray-700 dark:text-gray-300">
                           Title *
                         </FormLabel>
@@ -229,6 +229,7 @@ export function NoteEditor({
                           <Input
                             placeholder="Enter note title..."
                             onKeyDown={handleTitleKeyDown}
+                            className="h-10 lg:h-auto text-base lg:text-sm"
                             {...field}
                           />
                         </FormControl>
@@ -242,7 +243,7 @@ export function NoteEditor({
                     control={form.control}
                     name="content"
                     render={({ field }) => (
-                      <FormItem className="flex-1 flex flex-col mb-6">
+                      <FormItem className="flex-1 flex flex-col mb-4 lg:mb-6">
                         <FormControl>
                           <MarkdownEditor
                             title="Description"
@@ -278,11 +279,11 @@ export function NoteEditor({
                 </div>
 
                 {/* Sidebar */}
-                <div className="w-80 border-l bg-gray-50 dark:bg-gray-900/50 p-6 overflow-y-auto">
-                  <div className="space-y-6">
+                <div className="w-full lg:w-80 border-t lg:border-t-0 lg:border-l bg-gray-50 dark:bg-gray-900/50 p-4 lg:p-6 lg:overflow-y-auto lg:flex-initial">
+                  <div className="space-y-4 lg:space-y-6">
                     {/* AI Actions */}
                     <div className="space-y-3">
-                      <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
+                      <h3 className="text-base lg:text-sm font-semibold text-gray-900 dark:text-white">
                         AI Actions
                       </h3>
                       {aiError && (
@@ -300,14 +301,14 @@ export function NoteEditor({
                         </div>
                       )}
 
-                      <div className="space-y-2">
+                      <div className="grid grid-cols-1 lg:grid-cols-1 gap-2 lg:space-y-2 lg:gap-0">
                         <Button
                           type="button"
                           variant="outline"
                           size="sm"
                           onClick={handleGenerateTitle}
                           disabled={isGeneratingTitle || !hasContent}
-                          className="w-full justify-start"
+                          className="w-full justify-start h-10 lg:h-auto"
                         >
                           <Lightbulb className="h-4 w-4 mr-2" />
                           {isGeneratingTitle ? "Generating..." : "Auto Title"}
@@ -319,7 +320,7 @@ export function NoteEditor({
                           size="sm"
                           onClick={handleExpand}
                           disabled={isExpanding || !hasContent}
-                          className="w-full justify-start"
+                          className="w-full justify-start h-10 lg:h-auto"
                         >
                           <FileText className="h-4 w-4 mr-2" />
                           {isExpanding ? "Expanding..." : "Expand Text"}
@@ -331,7 +332,7 @@ export function NoteEditor({
                           size="sm"
                           onClick={handleSummarize}
                           disabled={isSummarizing || !hasContent}
-                          className="w-full justify-start"
+                          className="w-full justify-start h-10 lg:h-auto"
                         >
                           <Sparkles className="h-4 w-4 mr-2" />
                           {isSummarizing ? "Summarizing..." : "Summarize"}
@@ -345,7 +346,7 @@ export function NoteEditor({
                       name="tags"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-sm font-semibold text-gray-900 dark:text-white">
+                          <FormLabel className="text-base lg:text-sm font-semibold text-gray-900 dark:text-white">
                             Tags *
                           </FormLabel>
                           <FormControl>
@@ -356,14 +357,14 @@ export function NoteEditor({
                                   onChange={(e) => setTagInput(e.target.value)}
                                   onKeyDown={handleTagKeyDown}
                                   placeholder="Add a tag..."
-                                  className="flex-1 h-8 text-sm"
+                                  className="flex-1 h-10 lg:h-8 text-base lg:text-sm"
                                 />
                                 <Button
                                   type="button"
                                   onClick={handleAddTag}
                                   variant="outline"
                                   size="sm"
-                                  className="h-8 px-2"
+                                  className="h-10 lg:h-8 px-3 lg:px-2"
                                 >
                                   Add
                                 </Button>
@@ -399,7 +400,7 @@ export function NoteEditor({
                       name="folderId"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-sm font-semibold text-gray-900 dark:text-white">
+                          <FormLabel className="text-base lg:text-sm font-semibold text-gray-900 dark:text-white">
                             Folder
                           </FormLabel>
                           <Select
@@ -407,7 +408,7 @@ export function NoteEditor({
                             value={field.value || ""}
                           >
                             <FormControl>
-                              <SelectTrigger className="h-8">
+                              <SelectTrigger className="h-10 lg:h-8 text-base lg:text-sm">
                                 <SelectValue placeholder="Select a folder..." />
                               </SelectTrigger>
                             </FormControl>
@@ -430,17 +431,17 @@ export function NoteEditor({
                       name="color"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-sm font-semibold text-gray-900 dark:text-white">
+                          <FormLabel className="text-base lg:text-sm font-semibold text-gray-900 dark:text-white">
                             Color
                           </FormLabel>
                           <FormControl>
-                            <div className="flex gap-2 flex-wrap">
+                            <div className="flex gap-3 lg:gap-2 flex-wrap">
                               {NOTE_COLOR_OPTIONS.map((option) => (
                                 <button
                                   key={option.value}
                                   type="button"
                                   onClick={() => field.onChange(option.value)}
-                                  className={`w-6 h-6 rounded-full border-2 transition-all hover:scale-110 ${
+                                  className={`w-8 h-8 lg:w-6 lg:h-6 rounded-full border-2 transition-all hover:scale-110 ${
                                     field.value === option.value
                                       ? "border-gray-800 dark:border-gray-200"
                                       : "border-gray-300"
@@ -462,15 +463,16 @@ export function NoteEditor({
                       name="isPinned"
                       render={({ field }) => (
                         <FormItem>
-                          <div className="flex items-center space-x-2">
+                          <div className="flex items-center space-x-3 lg:space-x-2">
                             <FormControl>
                               <Checkbox
                                 checked={field.value}
                                 onCheckedChange={field.onChange}
+                                className="w-5 h-5 lg:w-4 lg:h-4"
                               />
                             </FormControl>
-                            <FormLabel className="flex items-center space-x-1 cursor-pointer text-sm">
-                              <Pin className="h-4 w-4" />
+                            <FormLabel className="flex items-center space-x-2 lg:space-x-1 cursor-pointer text-base lg:text-sm">
+                              <Pin className="h-5 w-5 lg:h-4 lg:w-4" />
                               <span>Pin this note</span>
                             </FormLabel>
                           </div>
@@ -486,22 +488,28 @@ export function NoteEditor({
         )}
 
         <DialogFooter className="flex-shrink-0 p-4 border-t">
-          <div className="flex items-center justify-between w-full">
-            <p className="text-xs text-gray-500">
+          <div className="flex flex-col lg:flex-row items-center justify-between w-full gap-3 lg:gap-0">
+            <p className="text-xs text-gray-500 hidden lg:block">
               Press{" "}
               <kbd className="px-1 py-0.5 text-xs bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded">
                 Cmd+Enter
               </kbd>{" "}
               to save
             </p>
-            <div className="flex gap-2">
-              <Button type="button" variant="outline" onClick={onClose}>
+            <div className="flex gap-2 w-full lg:w-auto">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={onClose}
+                className="flex-1 lg:flex-none h-10 lg:h-auto"
+              >
                 Cancel
               </Button>
               <Button
                 type="submit"
                 disabled={isSaving || isLoading}
                 onClick={form.handleSubmit(handleSubmit)}
+                className="flex-1 lg:flex-none h-10 lg:h-auto"
               >
                 {isSaving ? (
                   "Saving..."
