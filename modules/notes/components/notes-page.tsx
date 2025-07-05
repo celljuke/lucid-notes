@@ -111,7 +111,7 @@ export function NotesPage() {
   };
 
   return (
-    <>
+    <div className="flex flex-col h-full">
       {/* Search Bar */}
       <div className="p-3 border-b border-gray-100 dark:border-gray-800">
         <div className="relative max-w-md">
@@ -315,6 +315,6 @@ export function NotesPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </>
+    </div>
   );
 }

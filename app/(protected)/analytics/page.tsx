@@ -10,9 +10,11 @@ export default async function AnalyticsPage() {
   }
 
   return (
-    <div className="overflow-y-auto min-h-0">
-      <div className="container mx-auto p-6">
-        <AnalyticsDashboard />
+    <div className="flex flex-col h-full">
+      <div className="overflow-y-auto min-h-0">
+        <div className="container mx-auto p-6">
+          <AnalyticsDashboard />
+        </div>
       </div>
     </div>
   );
