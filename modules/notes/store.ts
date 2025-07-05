@@ -1,6 +1,12 @@
 import { create } from "zustand";
 import { subscribeWithSelector } from "zustand/middleware";
-import { Note, Folder, CreateNoteData, UpdateNoteData } from "./types";
+import {
+  Note,
+  Folder,
+  CreateNoteData,
+  UpdateNoteData,
+  NOTE_COLOR_OPTIONS,
+} from "./types";
 
 interface CreateFolderData {
   name: string;
@@ -30,6 +36,7 @@ interface NotesState {
   isEditorOpen: boolean;
   selectedNoteId: string | null;
   isFolderManagerOpen: boolean;
+  lastUsedColor: string; // Track last used color for smart random selection
 
   // Actions
   setNotes: (notes: Note[]) => void;
@@ -46,6 +53,10 @@ interface NotesState {
   setIsEditorOpen: (open: boolean) => void;
   setSelectedNoteId: (noteId: string | null) => void;
   setIsFolderManagerOpen: (open: boolean) => void;
+  setLastUsedColor: (color: string) => void;
+
+  // Utility functions
+  getSmartRandomColor: () => string;
 
   // Async actions
   searchNotes: (params?: {
@@ -79,6 +90,7 @@ export const useNotesStore = create<NotesState>()(
     isEditorOpen: false,
     selectedNoteId: null,
     isFolderManagerOpen: false,
+    lastUsedColor: NOTE_COLOR_OPTIONS[0].value, // Default to first color
 
     // Sync actions
     setNotes: (notes) => set({ notes }),
@@ -96,6 +108,25 @@ export const useNotesStore = create<NotesState>()(
     setSelectedNoteId: (selectedNoteId) => set({ selectedNoteId }),
     setIsFolderManagerOpen: (isFolderManagerOpen) =>
       set({ isFolderManagerOpen }),
+    setLastUsedColor: (lastUsedColor) => set({ lastUsedColor }),
+
+    // Utility function to get a smart random color
+    getSmartRandomColor: () => {
+      const { lastUsedColor } = get();
+
+      // Filter out the last used color to ensure we get a different one
+      const availableColors = NOTE_COLOR_OPTIONS.filter(
+        (color) => color.value !== lastUsedColor
+      );
+
+      // If somehow all colors are the same (shouldn't happen), use all colors
+      const colorsToChooseFrom =
+        availableColors.length > 0 ? availableColors : NOTE_COLOR_OPTIONS;
+
+      // Get random color from available options
+      const randomIndex = Math.floor(Math.random() * colorsToChooseFrom.length);
+      return colorsToChooseFrom[randomIndex].value;
+    },
 
     // Async actions
     searchNotes: async (params = {}) => {
@@ -150,6 +181,9 @@ export const useNotesStore = create<NotesState>()(
 
         const newNote = await response.json();
 
+        // Update last used color
+        set({ lastUsedColor: data.color });
+
         // Add the new note to the beginning of the list
         set((state) => ({
           notes: [newNote, ...state.notes],
@@ -181,6 +215,11 @@ export const useNotesStore = create<NotesState>()(
         }
 
         const updatedNote = await response.json();
+
+        // Update last used color if color was changed
+        if (data.color) {
+          set({ lastUsedColor: data.color });
+        }
 
         // Update the note in the list
         set((state) => ({

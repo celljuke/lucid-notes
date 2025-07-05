@@ -40,6 +40,7 @@ import { useAiActions } from "@/modules/notes/hooks/use-ai-actions";
 import { RelatedNotes } from "./related-notes";
 import { MarkdownEditor } from "./markdown-editor";
 import { Badge } from "@/components/ui/badge";
+import { useNotesStore } from "../store";
 
 type NoteFormData = CreateNoteData;
 
@@ -54,6 +55,8 @@ export function NoteEditor({
   const [isSaving, setIsSaving] = useState(false);
   const [tagInput, setTagInput] = useState("");
   const [relatedNotesCount, setRelatedNotesCount] = useState(0);
+
+  const { getSmartRandomColor } = useNotesStore();
 
   const {
     isSummarizing,
@@ -96,16 +99,18 @@ export function NoteEditor({
         .catch(console.error)
         .finally(() => setIsLoading(false));
     } else if (!noteId && open) {
+      // For new notes, auto-assign a smart random color
+      const smartColor = getSmartRandomColor();
       form.reset({
         title: "",
         content: "",
         tags: [],
         folderId: undefined,
-        color: "#FFE066",
+        color: smartColor,
         isPinned: false,
       });
     }
-  }, [noteId, open, form]);
+  }, [noteId, open, form, getSmartRandomColor]);
 
   const handleAddTag = () => {
     const currentTags = form.getValues("tags");
@@ -308,7 +313,7 @@ export function NoteEditor({
                           size="sm"
                           onClick={handleGenerateTitle}
                           disabled={isGeneratingTitle || !hasContent}
-                          className="w-full justify-start h-10 lg:h-auto"
+                          className="w-full justify-start"
                         >
                           <Lightbulb className="h-4 w-4 mr-2" />
                           {isGeneratingTitle ? "Generating..." : "Auto Title"}
@@ -320,7 +325,7 @@ export function NoteEditor({
                           size="sm"
                           onClick={handleExpand}
                           disabled={isExpanding || !hasContent}
-                          className="w-full justify-start h-10 lg:h-auto"
+                          className="w-full justify-start"
                         >
                           <FileText className="h-4 w-4 mr-2" />
                           {isExpanding ? "Expanding..." : "Expand Text"}
@@ -332,7 +337,7 @@ export function NoteEditor({
                           size="sm"
                           onClick={handleSummarize}
                           disabled={isSummarizing || !hasContent}
-                          className="w-full justify-start h-10 lg:h-auto"
+                          className="w-full justify-start"
                         >
                           <Sparkles className="h-4 w-4 mr-2" />
                           {isSummarizing ? "Summarizing..." : "Summarize"}
