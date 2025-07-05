@@ -16,7 +16,7 @@ This guide will help you set up the authentication system for Lucid Notes, inclu
    ```env
    # Database
    DATABASE_URL="postgresql://username:password@localhost:5432/lucid_notes?schema=public"
-   DIRECT_URL="postgresql://username:password@localhost:5432/lucid_notes?schema=public"
+   DATABASE_URL_UNPOOLED="postgresql://username:password@localhost:5432/lucid_notes?schema=public"
 
    # NextAuth.js
    NEXTAUTH_SECRET="your-super-secret-key-here"
@@ -67,7 +67,7 @@ This guide will help you set up the authentication system for Lucid Notes, inclu
 3. **Update Environment Variables**
    ```env
    DATABASE_URL="postgresql://username:password@localhost:5432/lucid_notes?schema=public"
-   DIRECT_URL="postgresql://username:password@localhost:5432/lucid_notes?schema=public"
+   DATABASE_URL_UNPOOLED="postgresql://username:password@localhost:5432/lucid_notes?schema=public"
    ```
 
 ### Production with Neon (Recommended)
@@ -85,7 +85,7 @@ This guide will help you set up the authentication system for Lucid Notes, inclu
 3. **Update Environment Variables**
    ```env
    DATABASE_URL="your-neon-connection-string"
-   DIRECT_URL="your-neon-connection-string"
+   DATABASE_URL_UNPOOLED="your-neon-connection-string"
    ```
 
 ## 🔑 NextAuth.js Configuration
@@ -109,7 +109,7 @@ For production deployment (Vercel), set these environment variables:
 
 ```env
 DATABASE_URL="your-neon-connection-string"
-DIRECT_URL="your-neon-connection-string"
+DATABASE_URL_UNPOOLED="your-neon-connection-string"
 NEXTAUTH_SECRET="your-generated-secret-key"
 NEXTAUTH_URL="https://your-app-domain.vercel.app"
 ```
@@ -127,7 +127,7 @@ NEXTAUTH_URL="https://your-app-domain.vercel.app"
    In Vercel dashboard, add these environment variables:
 
    - `DATABASE_URL`
-   - `DIRECT_URL`
+   - `DATABASE_URL_UNPOOLED`
    - `NEXTAUTH_SECRET`
    - `NEXTAUTH_URL`
 

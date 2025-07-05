@@ -41,7 +41,7 @@ jobs:
       - name: Setup environment variables
         run: |
           echo "DATABASE_URL=postgresql://lucid_user:lucid_password@localhost:5432/lucid_notes" >> $GITHUB_ENV
-          echo "DIRECT_URL=postgresql://lucid_user:lucid_password@localhost:5432/lucid_notes" >> $GITHUB_ENV
+          echo "DATABASE_URL_UNPOOLED=postgresql://lucid_user:lucid_password@localhost:5432/lucid_notes" >> $GITHUB_ENV
           echo "NEXTAUTH_SECRET=test-secret-for-ci" >> $GITHUB_ENV
           echo "NEXTAUTH_URL=http://localhost:3000" >> $GITHUB_ENV
           echo "OPENAI_API_KEY=sk-test-key" >> $GITHUB_ENV
