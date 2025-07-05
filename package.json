@@ -7,6 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "postinstall": "prisma generate",
     "db:setup": "./scripts/setup-db.sh",
     "db:start": "docker-compose up -d postgres",
     "db:stop": "docker-compose stop postgres",
@@ -74,7 +75,11 @@
     "eslint-config-next": "15.3.4",
     "lighthouse": "^11.0.0",
     "tailwindcss": "^4",
+    "tsx": "^4.20.3",
     "tw-animate-css": "^1.3.4",
     "typescript": "^5"
+  },
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
   }
 }
