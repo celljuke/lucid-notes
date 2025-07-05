@@ -42,23 +42,19 @@ export function AiUsageChart({ data, isLoading }: AiUsageChartProps) {
   const chartConfig = {
     title: {
       label: "Title Generation",
-      color: "hsl(var(--chart-1))",
+      color: "var(--chart-1)",
     },
     expand: {
       label: "Text Expansion",
-      color: "hsl(var(--chart-2))",
+      color: "var(--chart-2)",
     },
     summarize: {
       label: "Summarization",
-      color: "hsl(var(--chart-3))",
+      color: "var(--chart-3)",
     },
   };
 
-  const COLORS = [
-    "hsl(var(--chart-1))",
-    "hsl(var(--chart-2))",
-    "hsl(var(--chart-3))",
-  ];
+  const COLORS = ["var(--chart-1)", "var(--chart-2)", "var(--chart-3)"];
 
   if (isLoading) {
     return (

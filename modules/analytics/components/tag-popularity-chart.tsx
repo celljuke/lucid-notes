@@ -39,7 +39,7 @@ export function TagPopularityChart({
   const chartConfig = {
     count: {
       label: "Usage Count",
-      color: "hsl(var(--chart-2))",
+      color: "var(--chart-2)",
     },
   };
 

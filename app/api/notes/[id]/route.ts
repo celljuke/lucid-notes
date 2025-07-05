@@ -75,7 +75,9 @@ export async function PUT(
     }
 
     // Generate new embedding if title or content changed
-    let dataToUpdate: any = { ...validatedData };
+    let dataToUpdate: typeof validatedData & { embedding?: number[] } = {
+      ...validatedData,
+    };
     if (
       validatedData.title !== undefined ||
       validatedData.content !== undefined

@@ -35,7 +35,7 @@ export function NotesCreatedChart({
   const chartConfig = {
     count: {
       label: "Notes Created",
-      color: "hsl(var(--chart-1))",
+      color: "var(--chart-1)",
     },
   };
 

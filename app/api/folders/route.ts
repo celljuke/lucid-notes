@@ -8,12 +8,7 @@ const createFolderSchema = z.object({
   color: z.string().default("#4F46E5"),
 });
 
-const updateFolderSchema = z.object({
-  name: z.string().min(1).max(100).optional(),
-  color: z.string().optional(),
-});
-
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     const session = await auth();
     if (!session?.user?.id) {
