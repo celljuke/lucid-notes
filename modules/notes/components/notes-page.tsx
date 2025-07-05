@@ -16,7 +16,6 @@ import {
 } from "@/components/ui/alert-dialog";
 import { motion } from "motion/react";
 import { FolderBookmarks } from "./folder-bookmarks";
-import { NoteEditor } from "./note-editor";
 import { FolderManager } from "./folder-manager";
 import { useNotesStore } from "../store";
 import { Note } from "../types";
@@ -29,8 +28,6 @@ export function NotesPage() {
     search,
     setSearch,
     selectedFolderId,
-    isEditorOpen,
-    selectedNoteId,
     isFolderManagerOpen,
     setIsFolderManagerOpen,
     setIsEditorOpen,
@@ -44,8 +41,6 @@ export function NotesPage() {
 
     // Actions
     searchNotes,
-    updateNote,
-    createNote,
     deleteNote,
     fetchFolders,
     deleteFolder,
@@ -61,11 +56,6 @@ export function NotesPage() {
   const handleEditNote = (noteId: string) => {
     setSelectedNoteId(noteId);
     setIsEditorOpen(true);
-  };
-
-  const handleCloseEditor = () => {
-    setIsEditorOpen(false);
-    setSelectedNoteId(null);
   };
 
   const handleDeleteNote = async (noteId: string) => {
@@ -84,23 +74,6 @@ export function NotesPage() {
 
   const handleFolderSelect = (folderId: string | null) => {
     setSelectedFolderId(folderId);
-  };
-
-  const handleSaveNote = async (data: {
-    title: string;
-    content: string;
-    tags: string[];
-    folderId?: string;
-    color: string;
-    isPinned: boolean;
-  }) => {
-    if (selectedNoteId) {
-      await updateNote(selectedNoteId, data);
-    } else {
-      await createNote(data);
-    }
-    // Refresh folders to update note counts on badges
-    await fetchFolders();
   };
 
   const confirmDeleteNote = async () => {
@@ -266,15 +239,6 @@ export function NotesPage() {
           </div>
         )}
       </div>
-
-      {/* Note Editor Modal */}
-      <NoteEditor
-        noteId={selectedNoteId}
-        folders={folders}
-        open={isEditorOpen}
-        onClose={handleCloseEditor}
-        onSave={handleSaveNote}
-      />
 
       {/* Folder Manager Modal */}
       <FolderManager

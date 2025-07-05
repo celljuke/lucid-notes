@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   AppSidebar,
   MobileMenuButton,
@@ -13,6 +13,8 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
+import { NoteEditor } from "@/modules/notes/components/note-editor";
+import { useNotesStore } from "@/modules/notes/store";
 
 export default function ProtectedLayout({
   children,
@@ -20,6 +22,46 @@ export default function ProtectedLayout({
   children: React.ReactNode;
 }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  const {
+    // State
+    isEditorOpen,
+    selectedNoteId,
+    folders,
+    setIsEditorOpen,
+    setSelectedNoteId,
+    // Actions
+    updateNote,
+    createNote,
+    fetchFolders,
+  } = useNotesStore();
+
+  // Fetch folders when layout mounts
+  useEffect(() => {
+    fetchFolders();
+  }, [fetchFolders]);
+
+  const handleCloseEditor = () => {
+    setIsEditorOpen(false);
+    setSelectedNoteId(null);
+  };
+
+  const handleSaveNote = async (data: {
+    title: string;
+    content: string;
+    tags: string[];
+    folderId?: string;
+    color: string;
+    isPinned: boolean;
+  }) => {
+    if (selectedNoteId) {
+      await updateNote(selectedNoteId, data);
+    } else {
+      await createNote(data);
+    }
+    // Refresh folders to update note counts on badges
+    await fetchFolders();
+  };
 
   return (
     <div className="flex h-screen bg-white dark:bg-gray-950">
@@ -55,6 +97,15 @@ export default function ProtectedLayout({
 
       {/* Mobile Floating Create Button */}
       <MobileFloatingCreateButton />
+
+      {/* Global Note Editor Modal */}
+      <NoteEditor
+        noteId={selectedNoteId}
+        folders={folders}
+        open={isEditorOpen}
+        onClose={handleCloseEditor}
+        onSave={handleSaveNote}
+      />
     </div>
   );
 }
