@@ -33,7 +33,7 @@ A modern, AI-powered note-taking application built with Next.js, TypeScript, and
 
 ## 🛠️ Tech Stack
 
-- **Framework**: Next.js 14 (App Router)
+- **Framework**: Next.js 15 (App Router)
 - **Language**: TypeScript
 - **Database**: PostgreSQL with Prisma ORM
 - **Styling**: Tailwind CSS
