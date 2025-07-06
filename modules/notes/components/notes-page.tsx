@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import {
@@ -18,6 +18,7 @@ import { FolderManager } from "./folder-manager";
 import { SortableNotesGrid } from "./sortable-notes-grid";
 import { useNotesStore } from "../store";
 import { useNotesTrpc } from "../hooks/use-notes-trpc";
+import { useFoldersTrpc } from "@/modules/folders/hooks/use-folders-trpc";
 import type { Note } from "../types";
 
 export function NotesPage() {
@@ -33,12 +34,10 @@ export function NotesPage() {
     setIsEditorOpen,
     setSelectedNoteId,
     setSelectedFolderId,
-
-    // Folder methods (still using store since folders aren't migrated yet)
-    folders,
-    fetchFolders,
-    deleteFolder,
   } = useNotesStore();
+
+  // Use tRPC hooks for folder operations
+  const { folders, deleteFolder } = useFoldersTrpc();
 
   // Use tRPC hooks for note operations
   const { notes, isLoadingNotes, deleteNote, reorderNotes, useFilteredNotes } =
@@ -55,11 +54,6 @@ export function NotesPage() {
   const displayNotes = (filteredNotes || notes || []) as Note[];
   const isLoading = isLoadingFiltered || isLoadingNotes;
 
-  // Initialize folders on component mount
-  useEffect(() => {
-    fetchFolders();
-  }, [fetchFolders]);
-
   // Handlers
   const handleEditNote = (noteId: string) => {
     setSelectedNoteId(noteId);
@@ -68,8 +62,7 @@ export function NotesPage() {
 
   const handleDeleteNote = async (noteId: string) => {
     await deleteNote(noteId);
-    // Refresh folders to update note counts on badges
-    await fetchFolders();
+    // Folders automatically refresh with tRPC
   };
 
   const handleDeleteFolder = async (folderId: string) => {
@@ -144,13 +137,11 @@ export function NotesPage() {
         folders={folders}
         open={isFolderManagerOpen}
         onClose={() => setIsFolderManagerOpen(false)}
-        onFolderCreated={async () => {
-          // Refresh folders to show newly created folder
-          await fetchFolders();
+        onFolderCreated={() => {
+          // Folders automatically refresh with tRPC
         }}
-        onFolderDeleted={async () => {
-          // Refresh folders to remove deleted folder
-          await fetchFolders();
+        onFolderDeleted={() => {
+          // Folders automatically refresh with tRPC
         }}
       />
 

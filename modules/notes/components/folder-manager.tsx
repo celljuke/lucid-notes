@@ -30,7 +30,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { useNotesStore } from "../store";
+import { useFoldersTrpc } from "@/modules/folders/hooks/use-folders-trpc";
 import { createFolderSchema, type CreateFolderData } from "../schema";
 import { FOLDER_COLOR_OPTIONS } from "../types";
 
@@ -55,7 +55,8 @@ export function FolderManager({
   onFolderDeleted,
 }: FolderManagerProps) {
   const [deleteFolderId, setDeleteFolderId] = useState<string | null>(null);
-  const { createFolder, deleteFolder } = useNotesStore();
+  const { createFolder, deleteFolder, isCreating, isDeleting } =
+    useFoldersTrpc();
 
   const form = useForm<CreateFolderData>({
     resolver: zodResolver(createFolderSchema),
@@ -146,9 +147,9 @@ export function FolderManager({
             <Button
               type="submit"
               className="w-full"
-              disabled={form.formState.isSubmitting}
+              disabled={form.formState.isSubmitting || isCreating}
             >
-              Create Folder
+              {isCreating ? "Creating..." : "Create Folder"}
             </Button>
           </form>
         </Form>
@@ -216,9 +217,10 @@ export function FolderManager({
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={confirmDeleteFolder}
+              disabled={isDeleting}
               className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
             >
-              Delete Folder
+              {isDeleting ? "Deleting..." : "Delete Folder"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

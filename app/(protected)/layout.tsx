@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
   AppSidebar,
   MobileMenuButton,
@@ -16,6 +16,7 @@ import {
 import { NoteEditor } from "@/modules/notes/components/note-editor";
 import { useNotesStore } from "@/modules/notes/store";
 import { useNotesTrpc } from "@/modules/notes/hooks/use-notes-trpc";
+import { useFoldersTrpc } from "@/modules/folders/hooks/use-folders-trpc";
 
 export default function ProtectedLayout({
   children,
@@ -28,20 +29,13 @@ export default function ProtectedLayout({
     // State
     isEditorOpen,
     selectedNoteId,
-    folders,
     setIsEditorOpen,
     setSelectedNoteId,
-    // Actions
-    fetchFolders,
   } = useNotesStore();
 
-  // Use tRPC for note operations
+  // Use tRPC for note and folder operations
   const { createNote, updateNote } = useNotesTrpc();
-
-  // Fetch folders when layout mounts
-  useEffect(() => {
-    fetchFolders();
-  }, [fetchFolders]);
+  const { folders } = useFoldersTrpc();
 
   const handleCloseEditor = () => {
     setIsEditorOpen(false);
@@ -62,8 +56,7 @@ export default function ProtectedLayout({
       } else {
         await createNote(data);
       }
-      // Refresh folders to update note counts on badges
-      await fetchFolders();
+      // Folders automatically refresh with tRPC
     } catch (error) {
       console.error("Error saving note:", error);
       // Error handling is already done in the tRPC hooks

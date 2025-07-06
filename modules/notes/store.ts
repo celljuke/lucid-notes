@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { subscribeWithSelector } from "zustand/middleware";
-import type { Note, Folder, CreateFolderData, UpdateFolderData } from "./types";
+import type { Note } from "./types";
 import { NOTE_COLOR_OPTIONS } from "./types";
 
 interface NotesState {
@@ -8,10 +8,6 @@ interface NotesState {
   notes: Note[];
   isLoading: boolean;
   error: string | null;
-
-  // Folders state
-  folders: Folder[];
-  foldersLoading: boolean;
 
   // UI state
   search: string;
@@ -28,10 +24,6 @@ interface NotesState {
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
 
-  // Actions for folders
-  setFolders: (folders: Folder[]) => void;
-  setFoldersLoading: (loading: boolean) => void;
-
   // UI actions
   setSearch: (search: string) => void;
   setSelectedTags: (tags: string[]) => void;
@@ -44,12 +36,6 @@ interface NotesState {
 
   // Utility functions
   getSmartRandomColor: () => string;
-
-  // Folder operations (not migrated to tRPC yet)
-  fetchFolders: () => Promise<void>;
-  createFolder: (data: CreateFolderData) => Promise<Folder>;
-  updateFolder: (folderId: string, data: UpdateFolderData) => Promise<Folder>;
-  deleteFolder: (folderId: string) => Promise<void>;
 }
 
 export const useNotesStore = create<NotesState>()(
@@ -58,9 +44,6 @@ export const useNotesStore = create<NotesState>()(
     notes: [],
     isLoading: false,
     error: null,
-
-    folders: [],
-    foldersLoading: false,
 
     search: "",
     selectedTags: [],
@@ -75,10 +58,6 @@ export const useNotesStore = create<NotesState>()(
     setNotes: (notes) => set({ notes }),
     setLoading: (isLoading) => set({ isLoading }),
     setError: (error) => set({ error }),
-
-    // Sync actions for folders
-    setFolders: (folders) => set({ folders }),
-    setFoldersLoading: (foldersLoading) => set({ foldersLoading }),
 
     // UI actions
     setSearch: (search) => set({ search }),
@@ -109,100 +88,6 @@ export const useNotesStore = create<NotesState>()(
       return colorsToChooseFrom[randomIndex].value;
     },
 
-    // Folder operations (still using REST API - TODO: migrate to tRPC)
-    fetchFolders: async () => {
-      set({ foldersLoading: true });
-
-      try {
-        const response = await fetch("/api/folders");
-        if (!response.ok) {
-          throw new Error("Failed to fetch folders");
-        }
-
-        const folders = await response.json();
-        set({ folders, foldersLoading: false });
-      } catch (error) {
-        console.error("Error fetching folders:", error);
-        set({ foldersLoading: false });
-      }
-    },
-
-    createFolder: async (data) => {
-      try {
-        const response = await fetch("/api/folders", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(data),
-        });
-
-        if (!response.ok) {
-          throw new Error("Failed to create folder");
-        }
-
-        const newFolder = await response.json();
-
-        // Add the new folder to the list
-        set((state) => ({
-          folders: [newFolder, ...state.folders],
-        }));
-
-        return newFolder;
-      } catch (error) {
-        console.error("Error creating folder:", error);
-        throw error;
-      }
-    },
-
-    updateFolder: async (folderId, data) => {
-      try {
-        const response = await fetch(`/api/folders/${folderId}`, {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(data),
-        });
-
-        if (!response.ok) {
-          throw new Error("Failed to update folder");
-        }
-
-        const updatedFolder = await response.json();
-
-        // Update the folder in the list
-        set((state) => ({
-          folders: state.folders.map((folder) =>
-            folder.id === folderId ? updatedFolder : folder
-          ),
-        }));
-
-        return updatedFolder;
-      } catch (error) {
-        console.error("Error updating folder:", error);
-        throw error;
-      }
-    },
-
-    deleteFolder: async (folderId) => {
-      try {
-        const response = await fetch(`/api/folders/${folderId}`, {
-          method: "DELETE",
-        });
-
-        if (!response.ok) {
-          throw new Error("Failed to delete folder");
-        }
-
-        // Remove the folder from the list
-        set((state) => ({
-          folders: state.folders.filter((folder) => folder.id !== folderId),
-        }));
-      } catch (error) {
-        console.error("Error deleting folder:", error);
-        throw error;
-      }
-    },
+    // Folder operations are now handled by tRPC hooks
   }))
 );
