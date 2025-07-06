@@ -31,8 +31,8 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useFoldersTrpc } from "@/modules/folders/hooks/use-folders-trpc";
-import { createFolderSchema, type CreateFolderData } from "../schema";
-import { FOLDER_COLOR_OPTIONS } from "../types";
+import { createFolderSchema, type CreateFolderData } from "../../notes/schema";
+import { FOLDER_COLOR_OPTIONS } from "../../notes/types";
 
 interface FolderManagerProps {
   folders: Array<{

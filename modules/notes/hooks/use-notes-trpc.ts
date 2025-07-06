@@ -55,28 +55,28 @@ export const useNotesTrpc = () => {
   // Helper functions
   const createNote = useCallback(
     (input: CreateNoteInput) => {
-      return createNoteMutation.mutate(input);
+      return createNoteMutation.mutateAsync(input);
     },
     [createNoteMutation]
   );
 
   const updateNote = useCallback(
     (id: string, input: UpdateNoteInput) => {
-      return updateNoteMutation.mutate({ id, ...input });
+      return updateNoteMutation.mutateAsync({ id, ...input });
     },
     [updateNoteMutation]
   );
 
   const deleteNote = useCallback(
     (id: string) => {
-      return deleteNoteMutation.mutate({ id });
+      return deleteNoteMutation.mutateAsync({ id });
     },
     [deleteNoteMutation]
   );
 
   const reorderNotes = useCallback(
     (noteOrders: { id: string; order: number }[]) => {
-      return reorderNotesMutation.mutate({ noteOrders });
+      return reorderNotesMutation.mutateAsync({ noteOrders });
     },
     [reorderNotesMutation]
   );

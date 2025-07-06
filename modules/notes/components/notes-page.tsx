@@ -13,8 +13,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { FolderBookmarks } from "./folder-bookmarks";
-import { FolderManager } from "./folder-manager";
+import { FolderBookmarks } from "../../folders/components/folder-bookmarks";
+import { FolderManager } from "../../folders/components/folder-manager";
 import { SortableNotesGrid } from "./sortable-notes-grid";
 import { useNotesStore } from "../store";
 import { useNotesTrpc } from "../hooks/use-notes-trpc";
