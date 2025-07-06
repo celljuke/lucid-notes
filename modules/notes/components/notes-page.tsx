@@ -17,12 +17,14 @@ import { FolderBookmarks } from "./folder-bookmarks";
 import { FolderManager } from "./folder-manager";
 import { SortableNotesGrid } from "./sortable-notes-grid";
 import { useNotesStore } from "../store";
+import { useNotesTrpc } from "../hooks/use-notes-trpc";
+import type { Note } from "../types";
 
 export function NotesPage() {
   const [deleteNoteId, setDeleteNoteId] = useState<string | null>(null);
 
   const {
-    // State
+    // UI State from store
     search,
     setSearch,
     selectedFolderId,
@@ -32,24 +34,31 @@ export function NotesPage() {
     setSelectedNoteId,
     setSelectedFolderId,
 
-    // Data
-    notes,
+    // Folder methods (still using store since folders aren't migrated yet)
     folders,
-    isLoading,
-
-    // Actions
-    searchNotes,
-    deleteNote,
-    reorderNotes,
     fetchFolders,
     deleteFolder,
   } = useNotesStore();
 
-  // Initialize data on component mount
+  // Use tRPC hooks for note operations
+  const { notes, isLoadingNotes, deleteNote, reorderNotes, useFilteredNotes } =
+    useNotesTrpc();
+
+  // Get filtered notes based on search and selectedFolderId
+  const { data: filteredNotes, isLoading: isLoadingFiltered } =
+    useFilteredNotes({
+      search: search || undefined,
+      folderId: selectedFolderId || undefined,
+    });
+
+  // Use filtered notes if available, otherwise fall back to all notes
+  const displayNotes = (filteredNotes || notes || []) as Note[];
+  const isLoading = isLoadingFiltered || isLoadingNotes;
+
+  // Initialize folders on component mount
   useEffect(() => {
-    searchNotes();
     fetchFolders();
-  }, [searchNotes, fetchFolders]);
+  }, [fetchFolders]);
 
   // Handlers
   const handleEditNote = (noteId: string) => {
@@ -112,7 +121,7 @@ export function NotesPage() {
           <div className="flex items-center justify-center h-full">
             <div className="text-gray-500">Loading notes...</div>
           </div>
-        ) : notes.length === 0 ? (
+        ) : displayNotes.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-gray-500">
             <div className="text-6xl mb-4">📝</div>
             <h3 className="text-xl font-semibold mb-2">No notes yet</h3>
@@ -122,7 +131,7 @@ export function NotesPage() {
           </div>
         ) : (
           <SortableNotesGrid
-            notes={notes}
+            notes={displayNotes}
             onEdit={handleEditNote}
             onDelete={(noteId) => setDeleteNoteId(noteId)}
             onReorder={reorderNotes}

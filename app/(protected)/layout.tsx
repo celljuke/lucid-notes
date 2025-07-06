@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/sheet";
 import { NoteEditor } from "@/modules/notes/components/note-editor";
 import { useNotesStore } from "@/modules/notes/store";
+import { useNotesTrpc } from "@/modules/notes/hooks/use-notes-trpc";
 
 export default function ProtectedLayout({
   children,
@@ -31,10 +32,11 @@ export default function ProtectedLayout({
     setIsEditorOpen,
     setSelectedNoteId,
     // Actions
-    updateNote,
-    createNote,
     fetchFolders,
   } = useNotesStore();
+
+  // Use tRPC for note operations
+  const { createNote, updateNote } = useNotesTrpc();
 
   // Fetch folders when layout mounts
   useEffect(() => {
@@ -54,13 +56,18 @@ export default function ProtectedLayout({
     color: string;
     isPinned: boolean;
   }) => {
-    if (selectedNoteId) {
-      await updateNote(selectedNoteId, data);
-    } else {
-      await createNote(data);
+    try {
+      if (selectedNoteId) {
+        await updateNote(selectedNoteId, data);
+      } else {
+        await createNote(data);
+      }
+      // Refresh folders to update note counts on badges
+      await fetchFolders();
+    } catch (error) {
+      console.error("Error saving note:", error);
+      // Error handling is already done in the tRPC hooks
     }
-    // Refresh folders to update note counts on badges
-    await fetchFolders();
   };
 
   return (

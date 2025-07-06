@@ -30,7 +30,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
-  Note,
   NoteEditorProps,
   CreateNoteData,
   NOTE_COLOR_OPTIONS,
@@ -41,6 +40,7 @@ import { RelatedNotes } from "./related-notes";
 import { MarkdownEditor } from "./markdown-editor";
 import { Badge } from "@/components/ui/badge";
 import { useNotesStore } from "../store";
+import { trpc } from "@/lib/trpc/client";
 
 type NoteFormData = CreateNoteData;
 
@@ -51,7 +51,6 @@ export function NoteEditor({
   onClose,
   onSave,
 }: NoteEditorProps) {
-  const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [tagInput, setTagInput] = useState("");
   const [relatedNotesCount, setRelatedNotesCount] = useState(0);
@@ -69,6 +68,16 @@ export function NoteEditor({
     clearError,
   } = useAiActions();
 
+  // Use tRPC hook to get note data
+  const {
+    data: note,
+    isLoading,
+    error,
+  } = trpc.note.getById.useQuery(
+    { id: noteId! },
+    { enabled: !!noteId && open }
+  );
+
   const form = useForm<NoteFormData>({
     resolver: zodResolver(createNoteSchema),
     defaultValues: {
@@ -82,22 +91,15 @@ export function NoteEditor({
   });
 
   useEffect(() => {
-    if (noteId && open) {
-      setIsLoading(true);
-      fetch(`/api/notes/${noteId}`)
-        .then((res) => res.json())
-        .then((note: Note) => {
-          form.reset({
-            title: note.title,
-            content: note.content,
-            tags: note.tags,
-            folderId: note.folderId || undefined,
-            color: note.color,
-            isPinned: note.isPinned,
-          });
-        })
-        .catch(console.error)
-        .finally(() => setIsLoading(false));
+    if (note && open) {
+      form.reset({
+        title: note.title,
+        content: note.content,
+        tags: note.tags,
+        folderId: note.folderId || undefined,
+        color: note.color,
+        isPinned: note.isPinned,
+      });
     } else if (!noteId && open) {
       // For new notes, auto-assign a smart random color
       const smartColor = getSmartRandomColor();
@@ -110,7 +112,7 @@ export function NoteEditor({
         isPinned: false,
       });
     }
-  }, [noteId, open, form, getSmartRandomColor]);
+  }, [note, noteId, open, form, getSmartRandomColor]);
 
   const handleAddTag = () => {
     const currentTags = form.getValues("tags");
@@ -212,6 +214,10 @@ export function NoteEditor({
 
         {isLoading ? (
           <div className="text-center py-8">Loading...</div>
+        ) : error ? (
+          <div className="text-center py-8 text-red-500">
+            Error loading note: {error.message}
+          </div>
         ) : (
           <div className="flex-1 overflow-hidden">
             <Form {...form}>
@@ -410,14 +416,15 @@ export function NoteEditor({
                           </FormLabel>
                           <Select
                             onValueChange={field.onChange}
-                            value={field.value || ""}
+                            value={field.value}
                           >
                             <FormControl>
                               <SelectTrigger className="h-10 lg:h-8 text-base lg:text-sm">
-                                <SelectValue placeholder="Select a folder..." />
+                                <SelectValue placeholder="Select folder" />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
+                              <SelectItem value="none">No folder</SelectItem>
                               {folders.map((folder) => (
                                 <SelectItem key={folder.id} value={folder.id}>
                                   {folder.name}

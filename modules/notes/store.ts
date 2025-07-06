@@ -1,25 +1,10 @@
 import { create } from "zustand";
 import { subscribeWithSelector } from "zustand/middleware";
-import {
-  Note,
-  Folder,
-  CreateNoteData,
-  UpdateNoteData,
-  NOTE_COLOR_OPTIONS,
-} from "./types";
-
-interface CreateFolderData {
-  name: string;
-  color: string;
-}
-
-interface UpdateFolderData {
-  name?: string;
-  color?: string;
-}
+import type { Note, Folder, CreateFolderData, UpdateFolderData } from "./types";
+import { NOTE_COLOR_OPTIONS } from "./types";
 
 interface NotesState {
-  // Notes state
+  // Notes state (managed by tRPC now)
   notes: Note[];
   isLoading: boolean;
   error: string | null;
@@ -38,14 +23,16 @@ interface NotesState {
   isFolderManagerOpen: boolean;
   lastUsedColor: string; // Track last used color for smart random selection
 
-  // Actions
+  // Actions for notes (managed by tRPC now)
   setNotes: (notes: Note[]) => void;
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
 
+  // Actions for folders
   setFolders: (folders: Folder[]) => void;
   setFoldersLoading: (loading: boolean) => void;
 
+  // UI actions
   setSearch: (search: string) => void;
   setSelectedTags: (tags: string[]) => void;
   setSelectedFolderId: (folderId: string | null) => void;
@@ -58,16 +45,7 @@ interface NotesState {
   // Utility functions
   getSmartRandomColor: () => string;
 
-  // Async actions
-  searchNotes: (params?: {
-    search?: string;
-    tags?: string[];
-    folderId?: string | null;
-  }) => Promise<void>;
-  createNote: (data: CreateNoteData) => Promise<Note>;
-  updateNote: (noteId: string, data: UpdateNoteData) => Promise<Note>;
-  deleteNote: (noteId: string) => Promise<void>;
-  reorderNotes: (noteOrders: { id: string; order: number }[]) => Promise<void>;
+  // Folder operations (not migrated to tRPC yet)
   fetchFolders: () => Promise<void>;
   createFolder: (data: CreateFolderData) => Promise<Folder>;
   updateFolder: (folderId: string, data: UpdateFolderData) => Promise<Folder>;
@@ -93,14 +71,16 @@ export const useNotesStore = create<NotesState>()(
     isFolderManagerOpen: false,
     lastUsedColor: NOTE_COLOR_OPTIONS[0].value, // Default to first color
 
-    // Sync actions
+    // Sync actions for notes
     setNotes: (notes) => set({ notes }),
     setLoading: (isLoading) => set({ isLoading }),
     setError: (error) => set({ error }),
 
+    // Sync actions for folders
     setFolders: (folders) => set({ folders }),
     setFoldersLoading: (foldersLoading) => set({ foldersLoading }),
 
+    // UI actions
     setSearch: (search) => set({ search }),
     setSelectedTags: (selectedTags) => set({ selectedTags }),
     setSelectedFolderId: (selectedFolderId) => set({ selectedFolderId }),
@@ -129,192 +109,7 @@ export const useNotesStore = create<NotesState>()(
       return colorsToChooseFrom[randomIndex].value;
     },
 
-    // Async actions
-    searchNotes: async (params = {}) => {
-      const { search, tags, folderId } = params;
-      const currentState = get();
-
-      // Use provided params or current state
-      const searchTerm = search !== undefined ? search : currentState.search;
-      const searchTags = tags !== undefined ? tags : currentState.selectedTags;
-      const searchFolderId =
-        folderId !== undefined ? folderId : currentState.selectedFolderId;
-
-      set({ isLoading: true, error: null });
-
-      try {
-        const searchParams = new URLSearchParams();
-        if (searchTerm) searchParams.append("search", searchTerm);
-        if (searchTags?.length)
-          searchParams.append("tags", searchTags.join(","));
-        if (searchFolderId) searchParams.append("folderId", searchFolderId);
-
-        const response = await fetch(`/api/notes?${searchParams.toString()}`);
-        if (!response.ok) {
-          throw new Error("Failed to fetch notes");
-        }
-
-        const notes = await response.json();
-        // Sort notes by isPinned (desc) and then by order (asc)
-        const sortedNotes = notes.sort((a: Note, b: Note) => {
-          if (a.isPinned !== b.isPinned) {
-            return a.isPinned ? -1 : 1;
-          }
-          return a.order - b.order;
-        });
-        set({ notes: sortedNotes, isLoading: false });
-      } catch (error) {
-        set({
-          error: error instanceof Error ? error.message : "An error occurred",
-          isLoading: false,
-        });
-      }
-    },
-
-    createNote: async (data) => {
-      set({ error: null });
-
-      try {
-        const response = await fetch("/api/notes", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(data),
-        });
-
-        if (!response.ok) {
-          throw new Error("Failed to create note");
-        }
-
-        const newNote = await response.json();
-
-        // Update last used color
-        set({ lastUsedColor: data.color });
-
-        // Add the new note to the beginning of the list
-        set((state) => ({
-          notes: [newNote, ...state.notes],
-        }));
-
-        return newNote;
-      } catch (error) {
-        set({
-          error: error instanceof Error ? error.message : "An error occurred",
-        });
-        throw error;
-      }
-    },
-
-    updateNote: async (noteId, data) => {
-      set({ error: null });
-
-      try {
-        const response = await fetch(`/api/notes/${noteId}`, {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(data),
-        });
-
-        if (!response.ok) {
-          throw new Error("Failed to update note");
-        }
-
-        const updatedNote = await response.json();
-
-        // Update last used color if color was changed
-        if (data.color) {
-          set({ lastUsedColor: data.color });
-        }
-
-        // Update the note in the list
-        set((state) => ({
-          notes: state.notes.map((note) =>
-            note.id === noteId ? updatedNote : note
-          ),
-        }));
-
-        return updatedNote;
-      } catch (error) {
-        set({
-          error: error instanceof Error ? error.message : "An error occurred",
-        });
-        throw error;
-      }
-    },
-
-    deleteNote: async (noteId) => {
-      set({ error: null });
-
-      try {
-        const response = await fetch(`/api/notes/${noteId}`, {
-          method: "DELETE",
-        });
-
-        if (!response.ok) {
-          throw new Error("Failed to delete note");
-        }
-
-        // Remove the note from the list
-        set((state) => ({
-          notes: state.notes.filter((note) => note.id !== noteId),
-        }));
-      } catch (error) {
-        set({
-          error: error instanceof Error ? error.message : "An error occurred",
-        });
-        throw error;
-      }
-    },
-
-    reorderNotes: async (noteOrders) => {
-      set({ error: null });
-
-      try {
-        const response = await fetch("/api/notes/reorder", {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ noteOrders }),
-        });
-
-        if (!response.ok) {
-          throw new Error("Failed to reorder notes");
-        }
-
-        // Update the notes order locally
-        set((state) => {
-          const notesMap = new Map(state.notes.map((note) => [note.id, note]));
-
-          // Update order values
-          noteOrders.forEach(({ id, order }) => {
-            const note = notesMap.get(id);
-            if (note) {
-              note.order = order;
-            }
-          });
-
-          // Sort notes by order
-          const updatedNotes = Array.from(notesMap.values()).sort((a, b) => {
-            if (a.isPinned !== b.isPinned) {
-              return a.isPinned ? -1 : 1;
-            }
-            return a.order - b.order;
-          });
-
-          return { notes: updatedNotes };
-        });
-      } catch (error) {
-        set({
-          error: error instanceof Error ? error.message : "An error occurred",
-        });
-        throw error;
-      }
-    },
-
+    // Folder operations (still using REST API - TODO: migrate to tRPC)
     fetchFolders: async () => {
       set({ foldersLoading: true });
 
@@ -410,22 +205,4 @@ export const useNotesStore = create<NotesState>()(
       }
     },
   }))
-);
-
-// Auto-search when search/filter parameters change
-useNotesStore.subscribe(
-  (state) => ({
-    search: state.search,
-    selectedTags: state.selectedTags,
-    selectedFolderId: state.selectedFolderId,
-  }),
-  (params) => {
-    useNotesStore.getState().searchNotes(params);
-  },
-  {
-    equalityFn: (a, b) =>
-      a.search === b.search &&
-      JSON.stringify(a.selectedTags) === JSON.stringify(b.selectedTags) &&
-      a.selectedFolderId === b.selectedFolderId,
-  }
 );

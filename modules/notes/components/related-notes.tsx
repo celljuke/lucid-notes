@@ -1,28 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useNotesStore } from "../store";
 import { formatDistanceToNow } from "date-fns";
 import { ExternalLink, Sparkles } from "lucide-react";
-
-interface RelatedNote {
-  id: string;
-  title: string;
-  content: string;
-  tags: string[];
-  similarity: number;
-  color: string;
-  createdAt: string;
-  updatedAt: string;
-  folder?: {
-    id: string;
-    name: string;
-    color: string;
-  };
-}
+import { trpc } from "@/lib/trpc/client";
 
 interface RelatedNotesProps {
   noteId: string;
@@ -35,43 +20,20 @@ export function RelatedNotes({
   className,
   onCountChange,
 }: RelatedNotesProps) {
-  const [relatedNotes, setRelatedNotes] = useState<RelatedNote[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const { setSelectedNoteId, setIsEditorOpen } = useNotesStore();
 
-  useEffect(() => {
-    if (noteId) {
-      fetchRelatedNotes();
-    }
-  }, [noteId]);
+  // Use tRPC hook to get related notes
+  const {
+    data: relatedNotesData,
+    isLoading,
+    error,
+  } = trpc.note.getRelated.useQuery({ id: noteId }, { enabled: !!noteId });
+
+  const relatedNotes = relatedNotesData?.relatedNotes || [];
 
   useEffect(() => {
     onCountChange?.(relatedNotes.length);
   }, [relatedNotes.length, onCountChange]);
-
-  const fetchRelatedNotes = async () => {
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      const response = await fetch(`/api/notes/${noteId}/related`);
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to fetch related notes");
-      }
-
-      setRelatedNotes(data.relatedNotes || []);
-    } catch (error) {
-      console.error("Error fetching related notes:", error);
-      setError(
-        error instanceof Error ? error.message : "Failed to fetch related notes"
-      );
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   const handleNoteClick = (relatedNoteId: string) => {
     setSelectedNoteId(relatedNoteId);
@@ -101,85 +63,97 @@ export function RelatedNotes({
 
   if (error) {
     return (
-      <div className={`text-center py-8 text-gray-500 ${className}`}>
-        <p className="text-sm">{error}</p>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={fetchRelatedNotes}
-          className="mt-2"
-        >
-          Try Again
-        </Button>
+      <div className={`text-sm text-red-600 ${className}`}>
+        <p>Error loading related notes:</p>
+        <p className="text-xs mt-1">{error.message}</p>
       </div>
     );
   }
 
   if (relatedNotes.length === 0) {
     return (
-      <div className={`text-center py-8 text-gray-500 ${className}`}>
-        <Sparkles className="h-8 w-8 mx-auto mb-2 opacity-50" />
-        <p className="text-sm">No related notes found yet.</p>
-        <p className="text-xs text-gray-400 mt-1">
-          Related notes will appear as you create more content.
+      <div className={`text-sm text-gray-500 ${className}`}>
+        <div className="flex items-center space-x-2 mb-2">
+          <Sparkles className="h-4 w-4 text-gray-400" />
+          <span>No related notes found</span>
+        </div>
+        <p className="text-xs">
+          Update this note to generate embeddings and find related content.
         </p>
       </div>
     );
   }
 
   return (
-    <div className={`space-y-4 ${className}`}>
+    <div className={`space-y-3 ${className}`}>
       {relatedNotes.map((note) => (
         <div
           key={note.id}
-          className="group relative rounded-lg border p-4 hover:shadow-md transition-shadow cursor-pointer"
-          style={{ backgroundColor: note.color + "15" }}
+          className="p-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:shadow-sm transition-shadow cursor-pointer"
           onClick={() => handleNoteClick(note.id)}
         >
           <div className="flex items-start justify-between mb-2">
-            <h4 className="font-semibold text-sm line-clamp-1 pr-2">
+            <h4 className="font-medium text-sm text-gray-900 dark:text-white line-clamp-1">
               {note.title}
             </h4>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center space-x-2 flex-shrink-0 ml-2">
               <Badge
                 variant="secondary"
-                className={`text-xs ${getSimilarityColor(note.similarity)}`}
+                className={`text-xs px-2 py-0.5 ${getSimilarityColor(
+                  note.similarity
+                )}`}
               >
                 {Math.round(note.similarity * 100)}%
               </Badge>
-              <ExternalLink className="h-3 w-3 opacity-0 group-hover:opacity-50 transition-opacity" />
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-6 w-6 p-0 text-gray-400 hover:text-gray-600"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleNoteClick(note.id);
+                }}
+              >
+                <ExternalLink className="h-3 w-3" />
+              </Button>
             </div>
           </div>
 
-          <p className="text-xs text-gray-600 mb-3 line-clamp-2">
+          <p className="text-xs text-gray-600 dark:text-gray-300 line-clamp-3 mb-3">
             {note.content}
           </p>
 
           <div className="flex items-center justify-between">
             <div className="flex flex-wrap gap-1">
               {note.tags.slice(0, 3).map((tag) => (
-                <Badge key={tag} variant="outline" className="text-xs">
+                <span
+                  key={tag}
+                  className="inline-block px-1.5 py-0.5 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded text-xs"
+                >
                   {tag}
-                </Badge>
+                </span>
               ))}
               {note.tags.length > 3 && (
-                <Badge variant="outline" className="text-xs">
-                  +{note.tags.length - 3}
-                </Badge>
+                <span className="text-xs text-gray-500">
+                  +{note.tags.length - 3} more
+                </span>
               )}
             </div>
 
-            <div className="flex items-center gap-2 text-xs text-gray-500">
+            <div className="flex items-center space-x-2 text-xs text-gray-500">
               {note.folder && (
                 <span
-                  className="w-2 h-2 rounded-full"
+                  className="px-1.5 py-0.5 rounded text-white text-xs"
                   style={{ backgroundColor: note.folder.color }}
-                />
+                >
+                  {note.folder.name}
+                </span>
               )}
               <span>
-                {formatDistanceToNow(new Date(note.updatedAt), {
-                  addSuffix: true,
-                })}
+                {note.updatedAt &&
+                  formatDistanceToNow(new Date(note.updatedAt), {
+                    addSuffix: true,
+                  })}
               </span>
             </div>
           </div>
