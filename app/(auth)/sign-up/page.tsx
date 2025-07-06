@@ -6,52 +6,38 @@ import { useRouter } from "next/navigation";
 import { AuthForm } from "@/modules/auth/components/auth-form";
 import { signUpSchema } from "@/modules/auth/schema";
 import { signInWithCredentials } from "@/lib/auth-actions";
+import { useAuthTrpc } from "@/modules/auth/hooks/use-auth-trpc";
 import { Brain, Shield, Rocket, Users } from "lucide-react";
 
 export default function SignUpPage() {
-  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
+  const { signUp, isSigningUp } = useAuthTrpc();
 
   const handleSignUp = async (data: Record<string, string>) => {
-    setIsLoading(true);
     setError(null);
 
-    try {
-      const response = await fetch("/api/auth/signup", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(data),
-      });
+    // Call tRPC signup
+    const result = await signUp({
+      name: data.name,
+      email: data.email,
+      password: data.password,
+    });
 
-      const result = await response.json();
+    if (!result.success) {
+      setError(result.error || "Something went wrong. Please try again.");
+      return;
+    }
 
-      if (!response.ok) {
-        setError(result.error || "Something went wrong.");
-        return;
-      }
+    // Sign in the user automatically after successful registration
+    const signInResult = await signInWithCredentials(data.email, data.password);
 
-      // Sign in the user automatically after successful registration
-      const signInResult = await signInWithCredentials(
-        data.email,
-        data.password
-      );
-
-      if (signInResult.error) {
-        setError(
-          "Account created but sign-in failed. Please sign in manually."
-        );
-        router.push("/sign-in");
-      } else {
-        router.push("/");
-        router.refresh();
-      }
-    } catch {
-      setError("Something went wrong. Please try again.");
-    } finally {
-      setIsLoading(false);
+    if (signInResult.error) {
+      setError("Account created but sign-in failed. Please sign in manually.");
+      router.push("/sign-in");
+    } else {
+      router.push("/");
+      router.refresh();
     }
   };
 
@@ -147,7 +133,7 @@ export default function SignUpPage() {
             <AuthForm
               mode="signup"
               onSubmit={handleSignUp}
-              isLoading={isLoading}
+              isLoading={isSigningUp}
               error={error}
               schema={signUpSchema}
             />
