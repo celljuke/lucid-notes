@@ -143,7 +143,6 @@ export function NoteEditor({
       onClose();
     } catch (error) {
       console.error("Error saving note:", error);
-      alert("Failed to save note");
     } finally {
       setIsSaving(false);
     }
