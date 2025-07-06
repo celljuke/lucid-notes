@@ -5,6 +5,7 @@ export interface Note {
   tags: string[];
   color: string;
   isPinned: boolean;
+  order: number;
   folderId?: string;
   createdAt?: string;
   updatedAt?: string;
@@ -46,6 +47,7 @@ export interface UpdateNoteData {
   folderId?: string;
   color?: string;
   isPinned?: boolean;
+  order?: number;
 }
 
 export interface CreateFolderData {

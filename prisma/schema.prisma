@@ -94,6 +94,7 @@ model Note {
   color     String   @default("#FFE066")
   isPublic  Boolean  @default(false) @map("is_public")
   isPinned  Boolean  @default(false) @map("is_pinned")
+  order     Int      @default(0) // Order for drag & drop positioning
   embedding Float[]  @default([]) // Vector embeddings for similarity search
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -104,6 +105,7 @@ model Note {
   @@index([userId])
   @@index([tags])
   @@index([folderId])
+  @@index([order])
   @@map("notes")
 }
 

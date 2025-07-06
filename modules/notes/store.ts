@@ -67,6 +67,7 @@ interface NotesState {
   createNote: (data: CreateNoteData) => Promise<Note>;
   updateNote: (noteId: string, data: UpdateNoteData) => Promise<Note>;
   deleteNote: (noteId: string) => Promise<void>;
+  reorderNotes: (noteOrders: { id: string; order: number }[]) => Promise<void>;
   fetchFolders: () => Promise<void>;
   createFolder: (data: CreateFolderData) => Promise<Folder>;
   updateFolder: (folderId: string, data: UpdateFolderData) => Promise<Folder>;
@@ -154,7 +155,14 @@ export const useNotesStore = create<NotesState>()(
         }
 
         const notes = await response.json();
-        set({ notes, isLoading: false });
+        // Sort notes by isPinned (desc) and then by order (asc)
+        const sortedNotes = notes.sort((a: Note, b: Note) => {
+          if (a.isPinned !== b.isPinned) {
+            return a.isPinned ? -1 : 1;
+          }
+          return a.order - b.order;
+        });
+        set({ notes: sortedNotes, isLoading: false });
       } catch (error) {
         set({
           error: error instanceof Error ? error.message : "An error occurred",
@@ -253,6 +261,52 @@ export const useNotesStore = create<NotesState>()(
         set((state) => ({
           notes: state.notes.filter((note) => note.id !== noteId),
         }));
+      } catch (error) {
+        set({
+          error: error instanceof Error ? error.message : "An error occurred",
+        });
+        throw error;
+      }
+    },
+
+    reorderNotes: async (noteOrders) => {
+      set({ error: null });
+
+      try {
+        const response = await fetch("/api/notes/reorder", {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ noteOrders }),
+        });
+
+        if (!response.ok) {
+          throw new Error("Failed to reorder notes");
+        }
+
+        // Update the notes order locally
+        set((state) => {
+          const notesMap = new Map(state.notes.map((note) => [note.id, note]));
+
+          // Update order values
+          noteOrders.forEach(({ id, order }) => {
+            const note = notesMap.get(id);
+            if (note) {
+              note.order = order;
+            }
+          });
+
+          // Sort notes by order
+          const updatedNotes = Array.from(notesMap.values()).sort((a, b) => {
+            if (a.isPinned !== b.isPinned) {
+              return a.isPinned ? -1 : 1;
+            }
+            return a.order - b.order;
+          });
+
+          return { notes: updatedNotes };
+        });
       } catch (error) {
         set({
           error: error instanceof Error ? error.message : "An error occurred",

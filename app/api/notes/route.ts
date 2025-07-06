@@ -59,7 +59,7 @@ export async function GET(request: NextRequest) {
       include: {
         folder: true,
       },
-      orderBy: [{ isPinned: "desc" }, { updatedAt: "desc" }],
+      orderBy: [{ isPinned: "desc" }, { order: "asc" }, { updatedAt: "desc" }],
     });
 
     return NextResponse.json(notes);
@@ -95,10 +95,20 @@ export async function POST(request: NextRequest) {
       // Continue without embedding - it can be generated later
     }
 
+    // Get the highest order value for the user's notes to assign the new note
+    const maxOrderNote = await prisma.note.findFirst({
+      where: { userId: session.user.id },
+      orderBy: { order: "desc" },
+      select: { order: true },
+    });
+
+    const nextOrder = (maxOrderNote?.order || 0) + 1;
+
     const note = await prisma.note.create({
       data: {
         ...validatedData,
         userId: session.user.id,
+        order: nextOrder,
         embedding,
       },
       include: {

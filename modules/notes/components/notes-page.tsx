@@ -1,9 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Search, Star, Folder, X } from "lucide-react";
+import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -14,11 +13,10 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { motion } from "motion/react";
 import { FolderBookmarks } from "./folder-bookmarks";
 import { FolderManager } from "./folder-manager";
+import { SortableNotesGrid } from "./sortable-notes-grid";
 import { useNotesStore } from "../store";
-import { Note } from "../types";
 
 export function NotesPage() {
   const [deleteNoteId, setDeleteNoteId] = useState<string | null>(null);
@@ -42,6 +40,7 @@ export function NotesPage() {
     // Actions
     searchNotes,
     deleteNote,
+    reorderNotes,
     fetchFolders,
     deleteFolder,
   } = useNotesStore();
@@ -122,121 +121,12 @@ export function NotesPage() {
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {notes.map((note: Note, index: number) => (
-              <motion.div
-                key={note.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1 }}
-                className="h-72"
-              >
-                <motion.div
-                  className="rounded-2xl p-5 cursor-pointer hover:shadow-xl transition-all duration-200 relative group h-full flex flex-col"
-                  style={{ backgroundColor: note.color }}
-                  onClick={() => handleEditNote(note.id)}
-                  whileTap={{ scale: 0.98 }}
-                >
-                  {/* Action buttons */}
-                  <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-all duration-200 flex space-x-2">
-                    <motion.button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setDeleteNoteId(note.id);
-                      }}
-                      className="w-6 h-6 cursor-pointer flex items-center justify-center"
-                      whileHover={{ scale: 1.1 }}
-                      whileTap={{ scale: 0.9 }}
-                    >
-                      <X className="w-4 h-4" />
-                    </motion.button>
-                  </div>
-
-                  {/* Pin indicator */}
-                  {note.isPinned && (
-                    <motion.div
-                      className="absolute bottom-4 right-4"
-                      initial={{ scale: 0 }}
-                      animate={{ scale: 1 }}
-                      transition={{
-                        type: "spring",
-                        stiffness: 500,
-                        damping: 30,
-                      }}
-                    >
-                      <div className="w-7 h-7 bg-amber-100/90 backdrop-blur-sm rounded-lg flex items-center justify-center shadow-sm border border-amber-200/50">
-                        <Star className="w-4 h-4 text-amber-600 fill-amber-500" />
-                      </div>
-                    </motion.div>
-                  )}
-
-                  {/* Note content */}
-                  <div className="flex-1 flex flex-col pt-2">
-                    {/* Top tags and folder */}
-                    <div className="flex flex-wrap gap-2 mb-3">
-                      {/* Folder tag */}
-                      {note.folder && (
-                        <Badge
-                          variant="secondary"
-                          className="text-xs font-medium border-0 shadow-sm"
-                          style={{
-                            color: note.folder.color,
-                          }}
-                        >
-                          <Folder className="w-3 h-3 mr-1" />
-                          {note.folder.name}
-                        </Badge>
-                      )}
-
-                      {/* Tags */}
-                      {note.tags.slice(0, 3).map((tag: string) => (
-                        <Badge
-                          key={tag}
-                          variant="secondary"
-                          className="text-xs font-normal"
-                        >
-                          {tag}
-                        </Badge>
-                      ))}
-                      {note.tags.length > 3 && (
-                        <Badge
-                          variant="outline"
-                          className="text-xs font-normal bg-white/60 text-gray-500 border-gray-300/60"
-                        >
-                          +{note.tags.length - 3}
-                        </Badge>
-                      )}
-                    </div>
-
-                    {/* Title and content */}
-                    <div className="flex-1 flex flex-col">
-                      {note.title && (
-                        <h3 className="font-semibold text-gray-900 mb-3 line-clamp-2 text-base">
-                          {note.title}
-                        </h3>
-                      )}
-                      {note.content && (
-                        <p className="text-gray-700 text-sm leading-relaxed line-clamp-4 flex-1">
-                          {note.content}
-                        </p>
-                      )}
-                    </div>
-
-                    {/* Date at bottom */}
-                    {note.createdAt && (
-                      <div className="mt-auto pt-3 text-xs text-gray-500 font-medium">
-                        {new Date(note.createdAt).toLocaleDateString("en-US", {
-                          month: "short",
-                          day: "numeric",
-                          year: "numeric",
-                        })}
-                      </div>
-                    )}
-                  </div>
-                </motion.div>
-              </motion.div>
-            ))}
-          </div>
+          <SortableNotesGrid
+            notes={notes}
+            onEdit={handleEditNote}
+            onDelete={(noteId) => setDeleteNoteId(noteId)}
+            onReorder={reorderNotes}
+          />
         )}
       </div>
 

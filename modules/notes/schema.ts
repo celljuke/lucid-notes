@@ -24,6 +24,7 @@ export const updateNoteSchema = z.object({
   folderId: z.string().optional(),
   color: z.string().optional(),
   isPinned: z.boolean().optional(),
+  order: z.number().optional(),
 });
 
 // Folder Schemas
